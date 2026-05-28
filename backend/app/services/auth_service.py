@@ -6,7 +6,7 @@ from sqlmodel import select
 
 def create_token_user(data, session):
     user = session.exec(
-        select(User).where(User.email == data.username)
+        select(User).where(User.email == data.email)
     ).first()
     
     if not user:
