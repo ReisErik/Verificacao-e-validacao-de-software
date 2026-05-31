@@ -36,7 +36,7 @@
     font-size: 16px;
   }
 
-  --background: oklch(1 0 0);
+  --background: oklch(25.197% 0.00003 271.152);
 
   --foreground: oklch(0.145 0 0);
 
@@ -118,7 +118,6 @@
 }
 
 #root {
-  width: 1126px;
   max-width: 100%;
   margin: 0 auto;
   text-align: center;

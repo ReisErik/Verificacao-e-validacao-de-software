@@ -11,7 +11,7 @@ import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 
 import {
-    Field, FieldDescription, FieldGroup, FieldLabel, FieldSet, FieldError
+    Field, FieldGroup, FieldLabel, FieldSet, FieldError
 } from "@/components/ui/field"
 
 const loginSchema = z.object({
@@ -33,11 +33,10 @@ export default function LoginPage() {
   })
 
   async function onSubmit(data: LoginSchema) {
-
+    
     try {
       const response = await api.post("/auth/login", data)
         toast.success("Login bem-sucedido!")
-        console.log(response.data)
         localStorage.setItem("token", response.data.access_token)
     }   
     catch (error) {
@@ -54,13 +53,14 @@ export default function LoginPage() {
 
     }
   }
+
 }
 
   return (
     <div className="flex min-h-screen items-center justify-center">
       <Card className="w-[400px]">
         <CardHeader>
-          <CardTitle>Login</CardTitle>
+          <CardTitle className="text-lg font-semibold">Login</CardTitle>
         </CardHeader>
 
         <CardContent>
