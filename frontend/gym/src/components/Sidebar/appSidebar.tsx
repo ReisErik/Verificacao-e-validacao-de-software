@@ -18,6 +18,8 @@ import {
   SidebarMenuButton,
 } from "@/components/ui/sidebar"
 
+import { useAuth } from "@/contexts/AuthContext"
+
 const menuItems = [
   {
     title: "Página Inicial",
@@ -37,6 +39,9 @@ const menuItems = [
 ]
 
 export default function AppSidebar() {
+  
+  const { user } = useAuth()
+
   return (
     <Sidebar variant="inset">
       <SidebarHeader>
@@ -74,6 +79,13 @@ export default function AppSidebar() {
 
       <SidebarFooter>
         <SidebarMenu>
+          <SidebarMenuItem>
+            <SidebarMenuButton asChild>
+              <Link to="/profile">
+                <span>{user?.first_name}</span>
+              </Link>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
           <SidebarMenuItem>
             <SidebarMenuButton>
               <LogOut />

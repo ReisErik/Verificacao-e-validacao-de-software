@@ -3,7 +3,7 @@ import {
     Route
 } from "react-router-dom"
 
-import LoginPage from "@/components/login"
+import LoginPage from "@/pages/login/login"
 import Layout from "@/components/Sidebar/sideBar"
 import HomeUser from "@/pages/homeUser"
 
