@@ -4,8 +4,8 @@ import {
 } from "react-router-dom"
 
 import LoginPage from "@/pages/login/login"
-import Layout from "@/components/Sidebar/sideBar"
-import HomeUser from "@/pages/homeUser"
+import Layout from "@/components/sidebar/layout"
+import HomeUser from "@/pages/home/homeUser"
 
 export default function AppRoutes() {
     return (

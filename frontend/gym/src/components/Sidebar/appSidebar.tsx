@@ -80,14 +80,10 @@ export default function AppSidebar() {
       <SidebarFooter>
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton asChild>
-              <Link to="/profile">
-                <span>{user?.first_name}</span>
-              </Link>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-          <SidebarMenuItem>
-            <SidebarMenuButton>
+            <SidebarMenuButton onClick={() => {
+                localStorage.removeItem("token")
+                window.location.href = "/login"
+              }}>
               <LogOut />
               <span>Sair</span>
             </SidebarMenuButton>

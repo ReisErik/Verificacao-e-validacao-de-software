@@ -6,14 +6,7 @@ import {
 } from "react"
 
 import { api } from "@/services/api"
-
-type User = {
-    id: number
-    first_name: string
-    last_name: string
-    unique_name: string
-    email: string
-}
+import type { User } from "@/schemas/user"
 
 type AuthContextType = {
     user: User | null
@@ -38,6 +31,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
             try {
                 const response = await api.get("/auth/me")
+                console.log(response.data)
                 setUser(response.data)
             }
             catch (error){
@@ -58,7 +52,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         })
 
         localStorage.setItem("token", response.data.access_token)
-        setUser(response.data.user)
+
+        const me = await api.get("/auth/me")
+        setUser(me.data)
     }
 
     function logout() {
