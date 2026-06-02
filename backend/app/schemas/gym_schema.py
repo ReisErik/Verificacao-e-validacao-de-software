@@ -18,3 +18,10 @@ class GymResponseSchema(BaseModel):
     total_students: int
     created_at: datetime
     updated_at: datetime
+
+class GymUpdateSchema(BaseModel):
+    name: str | None = Field(default=None, max_length=20)
+    location: str | None = Field(default=None, max_length=50)
+
+class GymUpdateOwnerSchema(BaseModel):
+    owner: int

@@ -20,3 +20,4 @@ def create_token_user(data, session):
     return {"access_token": access_token, "token_type": "bearer"}
 
 
+
