@@ -18,8 +18,6 @@ import {
   SidebarMenuButton,
 } from "@/components/ui/sidebar"
 
-import { useAuth } from "@/contexts/AuthContext"
-
 const menuItems = [
   {
     title: "Página Inicial",
@@ -40,8 +38,6 @@ const menuItems = [
 
 export default function AppSidebar() {
   
-  const { user } = useAuth()
-
   return (
     <Sidebar variant="inset">
       <SidebarHeader>
