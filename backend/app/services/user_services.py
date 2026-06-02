@@ -2,6 +2,7 @@ from fastapi import HTTPException
 from app.models.user import User
 from app.core.security import hash_password, verify_password
 from sqlmodel import select
+from datetime import datetime, timedelta
 from app.validators.validate_user import validate_name, validate_unique_name, validate_password
 
 def create_user(data, session):
@@ -84,6 +85,40 @@ def disable_user(id: int, session):
     user = get_user(id, session)
     
     user.active = False
+    session.add(user)
+    session.commit()
+    session.refresh(user)
+    return user
+
+def calculate_xp(id: int, xp: int, session):
+    user = get_user(id, session)
+
+    user.xp += xp
+    session.add(user)
+    session.commit()
+    session.refresh(user)
+    return user
+
+def update_streak(id: int, session):
+    user = get_user(id, session)
+
+    if user.last_workout:
+        last_workout_date = user.last_workout.date()
+        today = datetime.now().date()
+        yesterday = today - timedelta(days=1)
+
+        if last_workout_date == yesterday:
+            user.streak += 1
+        elif last_workout_date < yesterday:
+            user.streak = 1
+    else:
+        user.streak = 1
+
+    user.last_workout = datetime.now()
+    
+    if user.streak > user.best_streak:
+        user.best_streak = user.streak
+
     session.add(user)
     session.commit()
     session.refresh(user)
