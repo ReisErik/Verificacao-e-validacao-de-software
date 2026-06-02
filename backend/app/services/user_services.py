@@ -2,9 +2,7 @@ from fastapi import HTTPException
 from app.models.user import User
 from app.core.security import hash_password, verify_password
 from sqlmodel import select
-from app.validators.validate_password import validate_password
-from app.validators.validate_name import validate_name 
-from app.validators.validate_unique_name import validate_unique_name
+from app.validators.validate_user import validate_name, validate_unique_name, validate_password
 
 def create_user(data, session):
     password = data.password
