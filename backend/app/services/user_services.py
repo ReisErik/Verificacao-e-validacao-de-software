@@ -49,7 +49,7 @@ def create_user(data, session):
     session.refresh(user)
     return user
 
-def get_user(id: int, session):
+def get_user_or_404(id: int, session):
     user = session.get(User, id)
     if not user:
         raise HTTPException(
@@ -60,7 +60,7 @@ def get_user(id: int, session):
 
 def update_user_password(id:int, new_password: str, session):
     validate_password(new_password)
-    user = get_user(id, session)
+    user = get_user_or_404(id, session)
     
     if verify_password(new_password, user.password):
         raise HTTPException(
@@ -75,14 +75,14 @@ def update_user_password(id:int, new_password: str, session):
     return user
 
 def delete_user(id: int, session):
-    user = get_user(id, session)
+    user = get_user_or_404(id, session)
     
     session.delete(user)
     session.commit()
     return {"message": "Usuário deletado."}
 
 def disable_user(id: int, session):
-    user = get_user(id, session)
+    user = get_user_or_404(id, session)
     
     user.active = False
     session.add(user)
@@ -91,7 +91,7 @@ def disable_user(id: int, session):
     return user
 
 def calculate_xp(id: int, xp: int, session):
-    user = get_user(id, session)
+    user = get_user_or_404(id, session)
 
     user.xp += xp
     session.add(user)
@@ -100,7 +100,7 @@ def calculate_xp(id: int, xp: int, session):
     return user
 
 def update_streak(id: int, current_date : datetime, session):
-    user = get_user(id, session)
+    user = get_user_or_404(id, session)
 
     if current_date is None:
         current_date = datetime.now()
