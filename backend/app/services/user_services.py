@@ -99,12 +99,15 @@ def calculate_xp(id: int, xp: int, session):
     session.refresh(user)
     return user
 
-def update_streak(id: int, session):
+def update_streak(id: int, current_date : datetime, session):
     user = get_user(id, session)
 
+    if current_date is None:
+        current_date = datetime.now()
+    
     if user.last_workout:
         last_workout_date = user.last_workout.date()
-        today = datetime.now().date()
+        today = current_date.date()
         yesterday = today - timedelta(days=1)
 
         if last_workout_date == yesterday:
@@ -114,7 +117,7 @@ def update_streak(id: int, session):
     else:
         user.streak = 1
 
-    user.last_workout = datetime.now()
+    user.last_workout = current_date
     
     if user.streak > user.best_streak:
         user.best_streak = user.streak
