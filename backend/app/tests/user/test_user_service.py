@@ -1,7 +1,7 @@
 from unittest.mock import Mock, patch
 import pytest
 from fastapi import HTTPException
-from app.services.user_services import create_user, get_user, update_user_password
+from app.services.user_services import create_user, get_user_or_404, update_user_password
 from app.schemas.user_schema import UserCreateSchema
 
 
@@ -86,7 +86,7 @@ def test_get_user():
     user = Mock()
     session.get.return_value = user
 
-    response = get_user(1,session)
+    response = get_user_or_404(1,session)
     session.get.assert_called_once()
 
     assert response == user
@@ -96,7 +96,7 @@ def test_get_user_not_find():
     session.get.return_value = None
 
     with pytest.raises(HTTPException) as e:
-        get_user(1, session)
+        get_user_or_404(1, session)
     
     session.get.assert_called_once()
 
@@ -104,7 +104,7 @@ def test_get_user_not_find():
     assert e.value.detail == "Usuário não encontrado."
 
 
-@patch("app.services.user_services.get_user")
+@patch("app.services.user_services.get_user_or_404")
 @patch("app.services.user_services.hash_password")
 @patch("app.services.user_services.verify_password")
 def test_update_user_password(mock_verify_password, mock_hash_password, mock_get_user):
