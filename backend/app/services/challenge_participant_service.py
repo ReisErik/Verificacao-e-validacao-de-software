@@ -24,7 +24,6 @@ def ensure_not_participant(participant_id:int, challenge_id: int, session, curre
             detail="Usuario já está participando do desafio"
         )
 
-
 def join_or_refuse_challenge(data: JoinChallengeSchema , session, current_user):
     validateAuth(current_user)
 
