@@ -20,6 +20,8 @@ def get_progress_or_404(challenge_id: int, session, current_user):
             status_code = 404,
             detail = "Usuario não está participando deste desafio"
         )
+    
+    return progress
 
 
 
