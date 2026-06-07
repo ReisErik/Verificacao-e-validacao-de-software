@@ -70,10 +70,9 @@ def update_progress(data: UpdateProgressSchema, session, current_user):
     session.commit()
     session.refresh(progress)
 
-    
     response = ProgressResponseSchema(
         challenge_id = data.challenge_id,
-        progress = progress.current_progress,
+        current_progress = progress.current_progress,
         completed = progress.completed
     )
 
