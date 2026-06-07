@@ -13,12 +13,24 @@ class CreateChallengeSchema(BaseModel):
     xp_reward: int
     start_date: datetime
     end_date: datetime
-    goal: int
+    goal: float
     visibility: bool
     type_challenge: ChallengeType
 
 class JoinChallengeSchema(BaseModel):
-        challenge_id: int
-        invite_id: int
-        answer: bool
+    challenge_id: int
+    invite_id: int
+    answer: bool
+
+class UpdateProgressSchema(BaseModel):
+    score: float
+    challenge_id: int
+
+class ProgressResponseSchema(BaseModel):
+    challenge_id: int
+    progress: float
+    completed: bool
+
+
+
         
