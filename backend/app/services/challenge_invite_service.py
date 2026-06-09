@@ -21,7 +21,6 @@ def invite_exists(challenge_id: int, user_invitated_id: int, session, current_us
             detail="Convite já enviado"
         )
     
-    
 def invite_challenge(challenge_id: int, user_invitated_id: int, session, current_user):
     validateAuth(current_user)
 

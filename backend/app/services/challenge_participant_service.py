@@ -73,3 +73,42 @@ def join_or_refuse_challenge(data: JoinChallengeSchema , session, current_user):
     session.refresh(invite)
 
     return invite
+
+def get_challenge_participate(challenge_id: int, session, current_user):
+    validateAuth(current_user)
+
+    challenges = session.exec(
+        select(ChallengeParticipant).where(
+            ChallengeParticipant.user_id == current_user.id,
+            ChallengeParticipant.challenge_id == challenge_id
+        )
+    ).first()
+
+    if not challenges:
+        raise HTTPException(
+            status_code = 404,
+            detail="Usuario não participa deste desafio"
+        )
+
+    return challenges
+
+def get_all_challenge_participate(session, current_user):
+    validateAuth(current_user)
+
+    challenges = session.exec(
+        select(ChallengeParticipant).where(
+            ChallengeParticipant.user_id == current_user.id
+        )
+    ).all()
+
+    if not challenges:
+        raise HTTPException(
+            status_code = 404,
+            detail="Usuario não participa de nenhum desafio"
+        )
+
+    return challenges
+
+
+    
+

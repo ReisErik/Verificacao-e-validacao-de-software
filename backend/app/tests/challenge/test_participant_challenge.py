@@ -1,4 +1,4 @@
-from app.services.challenge_participant_service import ensure_not_participant, join_or_refuse_challenge
+from app.services.challenge_participant_service import ensure_not_participant, join_or_refuse_challenge, get_challenge_participate, get_all_challenge_participate
 from unittest.mock import Mock, patch
 from fastapi import HTTPException
 import pytest
@@ -223,3 +223,55 @@ def test_join_challenge_already_answered_false(mock_get_challenge, mock_get_invi
     assert e.value.detail == "Convite já respondido"
     session.commit.assert_not_called()
 
+def test_get_challenge_participate_success():
+    session = Mock()
+    current_user = Mock()
+    current_user.id = 1
+
+    challenge = Mock()
+    challenge.id = 1
+
+    session.exec.return_value.first.return_value = challenge
+
+    result = get_challenge_participate(1 ,session, current_user)
+
+    assert result == challenge
+
+def test_get_challenge_participate_empty():
+    session = Mock()
+    current_user = Mock()
+    current_user.id = 1
+
+    session.exec.return_value.first.return_value = None
+
+    with pytest.raises(HTTPException) as e:
+        get_challenge_participate(1,session, current_user)
+
+    assert e.value.status_code == 404
+    assert e.value.detail == "Usuario não participa deste desafio"
+
+def test_get_all_challenges_success():
+    session = Mock()
+    current_user = Mock()
+    current_user.id = 1
+
+    challenges = [Mock(), Mock()]
+
+    session.exec.return_value.all.return_value = challenges
+
+    result = get_all_challenge_participate(session, current_user)
+
+    assert result == challenges
+
+def test_get_all_challenges_empty():
+    session = Mock()
+    current_user = Mock()
+    current_user.id = 1
+
+    session.exec.return_value.all.return_value = []
+
+    with pytest.raises(HTTPException) as e:
+        get_all_challenge_participate(session, current_user)
+
+    assert e.value.status_code == 404
+    assert e.value.detail == "Usuario não participa de nenhum desafio"
