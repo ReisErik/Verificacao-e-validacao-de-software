@@ -92,3 +92,37 @@ def cancel_invite(invite_id: int, user_invitated_id: int, session, current_user)
     session.commit()
     
     return {"message": "Convite cancelado"}
+
+def get_all_invites_sends(session, current_user):
+    validateAuth(current_user)
+
+    invites = session.exec(
+        select(ChallengeInvite).where(
+            ChallengeInvite.sender_id == current_user.id
+        )
+    ).all()
+
+    if not invites:
+        raise HTTPException(
+            status_code = 404,
+            detail="Usuario não enviou convites"
+        )
+
+    return invites
+
+def get_all_invites_receives(session, current_user):
+    validateAuth(current_user)
+
+    invites = session.exec(
+        select(ChallengeInvite).where(
+            ChallengeInvite.receiver_id == current_user.id
+        )
+    ).all()
+
+    if not invites:
+        raise HTTPException(
+            status_code = 404,
+            detail="Usuario não recebeu convites"
+        )
+
+    return invites

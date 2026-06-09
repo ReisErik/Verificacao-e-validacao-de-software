@@ -1,4 +1,4 @@
-from app.services.challenge_invite_service import invite_exists, invite_challenge, get_invite_or_404, cancel_invite
+from app.services.challenge_invite_service import invite_exists, invite_challenge, get_invite_or_404, cancel_invite, get_all_invites_receives, get_all_invites_sends
 from unittest.mock import Mock, patch
 from fastapi import HTTPException
 import pytest
@@ -196,3 +196,55 @@ def test_cancel_invite_already_answer(mock_get_invite, mock_get_user):
 
     assert e.value.status_code == 400
     assert e.value.detail == "Convite já foi aceito"
+
+def test_get_all_invites_sends_success():
+    session = Mock()
+    current_user = Mock()
+    current_user.id = 1
+
+    invites = [Mock(), Mock()]
+
+    session.exec.return_value.all.return_value = invites
+
+    result = get_all_invites_sends(session, current_user)
+
+    assert result == invites
+
+def test_get_all_invites_sends_empty():
+    session = Mock()
+    current_user = Mock()
+    current_user.id = 1
+
+    session.exec.return_value.all.return_value = []
+
+    with pytest.raises(HTTPException) as e:
+        get_all_invites_sends(session, current_user)
+
+    assert e.value.status_code == 404
+    assert e.value.detail == "Usuario não enviou convites"
+
+def test_get_all_invites_receives_success():
+    session = Mock()
+    current_user = Mock()
+    current_user.id = 1
+
+    invites = [Mock(), Mock()]
+
+    session.exec.return_value.all.return_value = invites
+
+    result = get_all_invites_receives(session, current_user)
+
+    assert result == invites
+
+def test_get_all_invites_receives_empty():
+    session = Mock()
+    current_user = Mock()
+    current_user.id = 1
+
+    session.exec.return_value.all.return_value = []
+
+    with pytest.raises(HTTPException) as e:
+        get_all_invites_receives(session, current_user)
+
+    assert e.value.status_code == 404
+    assert e.value.detail == "Usuario não recebeu convites"
