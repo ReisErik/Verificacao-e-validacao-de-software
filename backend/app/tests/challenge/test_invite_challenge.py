@@ -1,4 +1,4 @@
-from app.services.challenge_invite_service import invite_exists, invite_challenge, get_invite_or_404
+from app.services.challenge_invite_service import invite_exists, invite_challenge, get_invite_or_404, cancel_invite
 from unittest.mock import Mock, patch
 from fastapi import HTTPException
 import pytest
@@ -114,3 +114,85 @@ def test_invite_challenge_not_owner(mock_get_user, mock_get_challenge, mock_invi
     assert e.value.detail == "Apenas o dono pode convidar"
     session.commit.assert_not_called()
 
+@patch("app.services.challenge_invite_service.get_user_or_404")
+@patch("app.services.challenge_invite_service.get_invite_or_404")
+def test_cancel_invite_success(mock_get_invite, mock_get_user):
+    session = Mock()
+    current_user = Mock()
+    current_user.id = 1
+
+    invite = Mock()
+    invite.sender_id = 1
+    invite.sent = True
+    invite.answer = None
+    invite.id = 1
+
+    mock_get_invite.return_value = invite
+    session.delete.return_value = None
+
+    response = cancel_invite(1, 1, session, current_user)
+
+    session.delete.assert_called_with(invite)
+    session.commit.assert_called_once()
+    assert response == {"message": "Convite cancelado"}    
+
+@patch("app.services.challenge_invite_service.get_user_or_404")
+@patch("app.services.challenge_invite_service.get_invite_or_404")
+def test_cancel_invite_sender_not_user(mock_get_invite, mock_get_user):
+    session = Mock()
+    current_user = Mock()
+    current_user.id = 1
+    
+    invite = Mock()
+    invite.id = 2
+    invite.sent = True
+    invite.answer = True
+
+    mock_get_invite.return_value = invite
+
+    with pytest.raises(HTTPException) as e:
+        cancel_invite(1, 1, session, current_user)
+
+    assert e.value.status_code == 400
+    assert e.value.detail == "Usuario não é dono do convite"
+
+@patch("app.services.challenge_invite_service.get_user_or_404")
+@patch("app.services.challenge_invite_service.get_invite_or_404")
+def test_cancel_invite_not_sent(mock_get_invite, mock_get_user):
+    session = Mock()
+    current_user = Mock()
+    current_user.id = 1
+
+    invite = Mock()
+    invite.sender_id = 1
+    invite.id = 1
+    invite.sent = False
+
+    mock_get_invite.return_value = invite
+
+    with pytest.raises(HTTPException) as e:
+        cancel_invite(1, 1, session, current_user)
+
+    assert e.value.status_code == 400
+    assert e.value.detail == "Convite não foi enviado"
+
+@patch("app.services.challenge_invite_service.get_user_or_404")
+@patch("app.services.challenge_invite_service.get_invite_or_404")
+def test_cancel_invite_already_answer(mock_get_invite, mock_get_user):
+    session = Mock()
+    current_user = Mock()
+    current_user.id = 1
+
+    invite = Mock()
+    invite.sender_id = 1
+    invite.id = 1
+    invite.sent = True
+    invite.answer = True
+
+    mock_get_invite.return_value = invite
+
+    with pytest.raises(HTTPException) as e:
+        cancel_invite(1, 1, session, current_user)
+
+    assert e.value.status_code == 400
+    assert e.value.detail == "Convite já foi aceito"

@@ -63,3 +63,32 @@ def get_invite_or_404(invite_id: int, session, current_user):
             detail="Desafio não encontrado"
         )
     return invite
+
+def cancel_invite(invite_id: int, user_invitated_id: int, session, current_user):
+    validateAuth(current_user)
+
+    invite = get_invite_or_404(invite_id, session, current_user)
+    get_user_or_404(user_invitated_id, session)
+
+    if invite.sender_id != current_user.id:
+        raise HTTPException(
+            status_code = 400,
+            detail="Usuario não é dono do convite"
+        )
+
+    if invite.sent == False:
+        raise HTTPException(
+            status_code = 400,
+            detail="Convite não foi enviado"
+        )
+    
+    if invite.answer == True:
+        raise HTTPException(
+            status_code = 400,
+            detail="Convite já foi aceito"
+        )
+
+    session.delete(invite)
+    session.commit()
+    
+    return {"message": "Convite cancelado"}
