@@ -4,6 +4,7 @@ from app.models.challenge_participant import ChallengeParticipant
 from fastapi import HTTPException
 from app.services.challenge_service import get_challenge_or_404
 from app.services.challenge_invite_service import get_invite_or_404
+from app.services.challenge_progression_service import get_progress_or_404
 from app.models.challenge_progress import ChallengeProgress
 from datetime import datetime, UTC
 from app.schemas.challenge_schema import JoinChallengeSchema
@@ -108,6 +109,64 @@ def get_all_challenge_participate(session, current_user):
         )
 
     return challenges
+
+def get_latest_user_challenge_or_none(challenge_id: int, session, current_user):
+
+    user = session.exec(
+        select(ChallengeParticipant).where(
+            ChallengeParticipant.challenge_id == challenge_id,
+            ChallengeParticipant.user_id != current_user.id
+        ).order_by(ChallengeParticipant.created_at)
+    ).first()
+
+    return user
+
+def condition_transfer_ownership(is_owner, has_new_owner, completed):
+    return (is_owner and has_new_owner and not completed)
+
+def leave_challenge(challenge_id: int, session, current_user):
+    validateAuth(current_user)
+
+    challenge = get_challenge_or_404(challenge_id, session, current_user)
+    challenge_participate = get_challenge_participate(challenge_id, session, current_user)
+    challenge_progression = get_progress_or_404(challenge_id, session, current_user)
+    new_owner = get_latest_user_challenge_or_none(challenge_id,session,current_user)
+
+    if challenge.end_date < datetime.now(UTC):
+        raise HTTPException(
+            status_code=400,
+            detail="Desafio já foi encerrado"
+        )
+
+    if challenge_progression.completed:
+        raise HTTPException(
+            status_code=400,
+            detail="Usuario já finalizou o desafio"
+        )
+
+    if condition_transfer_ownership(
+        challenge.owner == current_user.id,
+        new_owner is not None,
+        challenge_progression.completed
+    ):
+        challenge.owner = new_owner.user_id
+
+        session.add(challenge)
+
+    elif challenge.owner == current_user.id:
+        session.delete(challenge)
+
+    session.delete(challenge_participate)
+    session.delete(challenge_progression)
+
+    session.commit()
+
+    return {
+        "message": "Usuario saiu do desafio"
+    }
+
+
+
 
 
     
