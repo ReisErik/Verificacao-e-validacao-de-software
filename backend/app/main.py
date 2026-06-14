@@ -5,7 +5,7 @@ from contextlib import asynccontextmanager
 from app.routes.user_route import router as user_router
 from app.routes.auth_route import router as auth_router
 from app.routes.challenge_route import router as challenge_router
-
+from app.routes.challenge_invite_route import router as challenge_invite_router
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -28,6 +28,7 @@ app.add_middleware(
 app.include_router(user_router)
 app.include_router(auth_router)
 app.include_router(challenge_router)
+app.include_router(challenge_invite_router)
 
 @app.get("/")
 async def root():
