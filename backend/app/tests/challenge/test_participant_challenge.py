@@ -1,4 +1,4 @@
-from app.services.challenge_participant_service import ensure_not_participant, join_or_refuse_challenge, get_challenge_participate, get_all_challenge_participate
+from app.services.challenge_participant_service import ensure_not_participant, join_or_refuse_challenge, get_challenge_participate, get_all_challenge_participate,leave_challenge
 from unittest.mock import Mock, patch
 from fastapi import HTTPException
 import pytest
@@ -275,3 +275,119 @@ def test_get_all_challenges_empty():
 
     assert e.value.status_code == 404
     assert e.value.detail == "Usuario não participa de nenhum desafio"
+
+@patch("app.services.challenge_participant_service.get_latest_user_challenge_or_none")
+@patch("app.services.challenge_participant_service.get_progress_or_404")
+@patch("app.services.challenge_participant_service.get_challenge_participate")
+@patch("app.services.challenge_participant_service.get_challenge_or_404")
+def test_leave_challenge_and_delete_success(challenge_mock, challenge_participate_mock, progress_mock, latest_user_mock):
+
+    session = Mock()
+    current_user = Mock()
+    current_user.id = 1
+
+    challenge = Mock()
+    challenge.id = 1
+    challenge.owner = 1
+    challenge.end_date = datetime.now(UTC) + timedelta(days=1)
+
+    progress = Mock()
+    progress.completed = False
+
+    participate = Mock()
+
+    challenge_mock.return_value = challenge
+    challenge_participate_mock.return_value = participate 
+    progress_mock.return_value = progress
+    latest_user_mock.return_value = None
+
+    assert leave_challenge(1,session, current_user) == {
+        "message": "Usuario saiu do desafio"
+    }
+    session.delete.assert_called_once()
+    session.commit.assert_called_once()
+
+@patch("app.services.challenge_participant_service.get_latest_user_challenge_or_none")
+@patch("app.services.challenge_participant_service.get_progress_or_404")
+@patch("app.services.challenge_participant_service.get_challenge_participate")
+@patch("app.services.challenge_participant_service.get_challenge_or_404")
+def test_leave_challenge_and_replacement_new_owner_success(challenge_mock, challenge_participate_mock, progress_mock, latest_user_mock):
+
+    session = Mock()
+    current_user = Mock()
+    current_user.id = 1
+
+    challenge = Mock()
+    challenge.id = 1
+    challenge.owner = 1
+    challenge.end_date = datetime.now(UTC) + timedelta(days=1)
+
+    progress = Mock()
+    progress.completed = False
+
+    owner = Mock()
+    owner.user_id = 2
+
+    participate = Mock()
+
+    challenge_mock.return_value = challenge
+    challenge_participate_mock.return_value = participate
+    progress_mock.return_value = progress
+    latest_user_mock.return_value = owner
+
+    assert leave_challenge(1,session, current_user) == {
+        "message": "Usuario saiu do desafio"
+    }
+    session.add.assert_called_once()
+    assert session.delete.call_count == 2
+    session.commit.assert_called_once()
+
+@patch("app.services.challenge_participant_service.get_latest_user_challenge_or_none")
+@patch("app.services.challenge_participant_service.get_progress_or_404")
+@patch("app.services.challenge_participant_service.get_challenge_participate")
+@patch("app.services.challenge_participant_service.get_challenge_or_404")
+def test_leave_challenge_challenge_already_finished(challenge_mock, challenge_participate_mock, progress_mock, latest_user_mock):
+
+    session = Mock()
+    current_user = Mock()
+    current_user.id = 1
+
+    challenge = Mock()
+    challenge.id = 1
+    challenge.owner = 1
+    challenge.end_date = datetime.now(UTC) - timedelta(days=1)
+
+    challenge_mock.return_value = challenge
+
+    with pytest.raises(HTTPException) as e:
+        leave_challenge(1,session, current_user) 
+
+    assert e.value.status_code == 400
+    assert e.value.detail == "Desafio já foi encerrado"
+
+@patch("app.services.challenge_participant_service.get_latest_user_challenge_or_none")
+@patch("app.services.challenge_participant_service.get_progress_or_404")
+@patch("app.services.challenge_participant_service.get_challenge_participate")
+@patch("app.services.challenge_participant_service.get_challenge_or_404")
+def test_leave_challenge_challenge_already_completed(challenge_mock, challenge_participate_mock, progress_mock, latest_user_mock):
+
+    session = Mock()
+    current_user = Mock()
+    current_user.id = 1
+
+    challenge = Mock()
+    challenge.id = 1
+    challenge.owner = 1
+    challenge.end_date = datetime.now(UTC) + timedelta(days=1)
+
+    challenge_progression = Mock()
+    challenge_progression.completed = True
+
+    challenge_mock.return_value = challenge
+    progress_mock.return_value = challenge_progression
+
+    with pytest.raises(HTTPException) as e:
+        leave_challenge(1,session, current_user) 
+
+    assert e.value.status_code == 400
+    assert e.value.detail == "Usuario já finalizou o desafio"

@@ -121,9 +121,6 @@ def get_latest_user_challenge_or_none(challenge_id: int, session, current_user):
 
     return user
 
-def condition_transfer_ownership(is_owner, has_new_owner, completed):
-    return (is_owner and has_new_owner and not completed)
-
 def leave_challenge(challenge_id: int, session, current_user):
     validateAuth(current_user)
 
@@ -144,20 +141,18 @@ def leave_challenge(challenge_id: int, session, current_user):
             detail="Usuario já finalizou o desafio"
         )
 
-    if condition_transfer_ownership(
-        challenge.owner == current_user.id,
-        new_owner is not None,
-        challenge_progression.completed
+    if (
+        challenge.owner == current_user.id
+        and new_owner is not None
+        and not challenge_progression.completed
     ):
         challenge.owner = new_owner.user_id
-
         session.add(challenge)
+        session.delete(challenge_participate)
+        session.delete(challenge_progression)
 
     elif challenge.owner == current_user.id:
         session.delete(challenge)
-
-    session.delete(challenge_participate)
-    session.delete(challenge_progression)
 
     session.commit()
 
