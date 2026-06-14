@@ -62,6 +62,17 @@ def get_challenge_or_404(challenge_id:int , session, current_user):
             detail="Desafio não encontrado"
         )
     return challenge
+
+def get_all_challenge(session, current_user):
+    validateAuth(current_user)
+
+    challenges = session.exec(
+        select(Challenge).where(
+            Challenge.visibility.is_(True)
+        )
+    ).all()
+
+    return challenges
  
       
 

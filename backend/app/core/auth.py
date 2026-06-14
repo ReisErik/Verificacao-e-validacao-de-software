@@ -5,10 +5,15 @@ from app.database.connection import get_session
 from sqlmodel import Session
 from app.models.user import User
 from app.core.security import secret_key, algorithm
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
+security = HTTPBearer()
 
-def get_current_user(token: str = Depends(oauth2_scheme), session: Session = Depends(get_session)):
+def get_current_user(
+    credentials: HTTPAuthorizationCredentials = Depends(security),
+    session: Session = Depends(get_session),
+):
+    token = credentials.credentials
     
     credentials_exception = HTTPException(
         status_code=401,

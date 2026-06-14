@@ -10,7 +10,7 @@ class UserCreateSchema(BaseModel):
     last_name: str = Field(max_length=20)
     unique_name: str = Field(max_length=20)
     email: EmailStr 
-    password: str = Field(min_length=6, max_length=20)
+    password: str = Field(min_length=4, max_length=20)
     role: UserRole = UserRole.USER
 
 class UserResponseSchema(BaseModel):
