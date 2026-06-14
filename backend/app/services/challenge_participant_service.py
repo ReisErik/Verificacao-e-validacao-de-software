@@ -8,6 +8,7 @@ from app.services.challenge_progression_service import get_progress_or_404
 from app.models.challenge_progress import ChallengeProgress
 from datetime import datetime, UTC
 from app.schemas.challenge_schema import JoinChallengeSchema
+from app.utils.ensure_utc import ensure_utc
 
 def ensure_not_participant(participant_id:int, challenge_id: int, session, current_user):
     validateAuth(current_user)
@@ -32,6 +33,7 @@ def join_or_refuse_challenge(data: JoinChallengeSchema , session, current_user):
     challenge = get_challenge_or_404(data.challenge_id, session, current_user)
     invite = get_invite_or_404(data.invite_id, session, current_user)
     ensure_not_participant(current_user.id, challenge.id, session, current_user)
+    print(challenge.end_date, challenge.end_date.tzinfo)
 
     if invite.receiver_id != current_user.id:
         raise HTTPException(
@@ -45,7 +47,7 @@ def join_or_refuse_challenge(data: JoinChallengeSchema , session, current_user):
             detail="Convite já respondido"
         )
     
-    if challenge.end_date < datetime.now(UTC):
+    if ensure_utc(challenge.end_date) < datetime.now(UTC):
         raise HTTPException(
             status_code=400,
             detail="Desafio encerrado"
@@ -129,7 +131,7 @@ def leave_challenge(challenge_id: int, session, current_user):
     challenge_progression = get_progress_or_404(challenge_id, session, current_user)
     new_owner = get_latest_user_challenge_or_none(challenge_id,session,current_user)
 
-    if challenge.end_date < datetime.now(UTC):
+    if ensure_utc(challenge.end_date) < datetime.now(UTC):
         raise HTTPException(
             status_code=400,
             detail="Desafio já foi encerrado"
@@ -144,15 +146,15 @@ def leave_challenge(challenge_id: int, session, current_user):
     if (
         challenge.owner == current_user.id
         and new_owner is not None
-        and not challenge_progression.completed
     ):
         challenge.owner = new_owner.user_id
         session.add(challenge)
-        session.delete(challenge_participate)
-        session.delete(challenge_progression)
-
+        
     elif challenge.owner == current_user.id:
         session.delete(challenge)
+
+    session.delete(challenge_participate)
+    session.delete(challenge_progression)
 
     session.commit()
 

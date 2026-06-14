@@ -2,6 +2,7 @@ from app.models.challenge_progress import ChallengeProgress
 from app.validators.validate_auth import validateAuth
 from app.services.challenge_service import get_challenge_or_404
 from app.schemas.challenge_schema import UpdateProgressSchema, ProgressResponseSchema
+from app.utils.ensure_utc import ensure_utc
 from sqlmodel import select
 from fastapi import HTTPException
 from datetime import datetime, UTC
@@ -30,13 +31,13 @@ def update_progress(data: UpdateProgressSchema, session, current_user):
     progress = get_progress_or_404(data.challenge_id, session, current_user)
     challenge = get_challenge_or_404(data.challenge_id, session, current_user)
 
-    if challenge.start_date > datetime.now(UTC):
+    if ensure_utc(challenge.start_date) > datetime.now(UTC):
         raise HTTPException(
             status_code=400,
             detail="Desafio ainda não começou"
         )
     
-    if datetime.now(UTC) > challenge.end_date:
+    if datetime.now(UTC) > ensure_utc(challenge.end_date):
         raise HTTPException(
             status_code=400,
             detail="Desafio já acabou"
