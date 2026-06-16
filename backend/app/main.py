@@ -7,6 +7,7 @@ from app.routes.auth_route import router as auth_router
 from app.routes.challenge_route import router as challenge_router
 from app.routes.challenge_invite_route import router as challenge_invite_router
 from app.routes.challenge_participant_route import router as challenge_participant_router
+from app.routes.challenge_progression_route import router as challenge_progression_router
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -31,6 +32,7 @@ app.include_router(auth_router)
 app.include_router(challenge_router)
 app.include_router(challenge_invite_router)
 app.include_router(challenge_participant_router)
+app.include_router(challenge_progression_router)
 
 @app.get("/")
 async def root():
