@@ -4,7 +4,7 @@ export const loginSchema = z.object({
   email: z.email("Email inválido"),
   password: z
   .string()
-  .min(6, "Senha deve ter pelo menos 6 caracteres"),
+  .min(4, "Senha deve ter pelo menos 4 caracteres"),
 })
 
 export type LoginSchema = z.infer<typeof loginSchema>
