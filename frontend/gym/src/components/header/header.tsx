@@ -11,8 +11,7 @@ import Perfil from "@/components/header/perfil"
 import { useAuth } from "@/contexts/AuthContext"
 
 export default function Header(){
-    const workoutTodayReady = false
-    const workout = "Treino A"
+
     const { user } = useAuth()
     return (
         <>
