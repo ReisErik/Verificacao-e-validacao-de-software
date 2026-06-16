@@ -5,6 +5,7 @@ import {
   Dumbbell,
   BarChart3,
   LogOut,
+  Mail
 } from "lucide-react"
 
 import {
@@ -20,19 +21,19 @@ import {
 
 const menuItems = [
   {
-    title: "Página Inicial",
+    title: "Início",
     path: "/",
     icon: Home,
   },
   {
-    title: "Treinos",
-    path: "/treinos",
+    title: "Meus Desafios",
+    path: "/desafios",
     icon: Dumbbell,
   },
   {
-    title: "Dashboard",
-    path: "/dashboard",
-    icon: BarChart3,
+    title: "Convites",
+    path: "/convites",
+    icon: Mail,
   },
 ]
 
@@ -41,13 +42,13 @@ export default function AppSidebar() {
   return (
     <Sidebar variant="inset">
       <SidebarHeader>
-        <div className="px-2 py-4">
-          <h1 className="text-lg font-bold">
-            Gym Manager
+        <div className="flex flex-col px-2 py-4 items-start">
+          <h1 className="font-bold">
+            Desafios
           </h1>
 
           <p className="text-sm text-muted-foreground">
-            Academia cadastrada
+            Supere seus limites
           </p>
         </div>
       </SidebarHeader>
