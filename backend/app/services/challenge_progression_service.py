@@ -6,6 +6,8 @@ from app.utils.ensure_utc import ensure_utc
 from sqlmodel import select
 from fastapi import HTTPException
 from datetime import datetime, UTC
+from app.schemas.challenge_schema import ChallengeType
+from app.services.user_services import update_streak
 
 def get_progress_or_404(challenge_id: int, session, current_user):
     validateAuth(current_user)
@@ -31,53 +33,72 @@ def update_progress(data: UpdateProgressSchema, session, current_user):
     progress = get_progress_or_404(data.challenge_id, session, current_user)
     challenge = get_challenge_or_404(data.challenge_id, session, current_user)
 
-    if ensure_utc(challenge.start_date) > datetime.now(UTC):
+    now = datetime.now(UTC)
+    today = now.date()
+
+    if ensure_utc(challenge.start_date) > now:
         raise HTTPException(
             status_code=400,
-            detail="Desafio ainda não começou"
-        )
-    
-    if datetime.now(UTC) > ensure_utc(challenge.end_date):
-        raise HTTPException(
-            status_code=400,
-            detail="Desafio já acabou"
+            detail="Desafio ainda não começou",
         )
 
-    score = data.score
-
-    if score < 0:
+    if now > ensure_utc(challenge.end_date):
         raise HTTPException(
             status_code=400,
-            detail="Score precisa ser positivo"
+            detail="Desafio já acabou",
         )
 
     if progress.completed:
         raise HTTPException(
             status_code=400,
-            detail="Usuario já completou o desafio"
+            detail="Usuário já completou o desafio",
         )
 
-    current_progress = progress.current_progress + score
+    if challenge.type_challenge == ChallengeType.STREAK:
 
-    if current_progress >= challenge.goal:
+        if progress.last_update == today:
+            raise HTTPException(
+                status_code=400,
+                detail="Você já registrou progresso hoje.",
+            )
+
+        if (progress.last_update is not None and (today - progress.last_update).days > 1):
+            progress.current_progress = 1
+        else:
+            progress.current_progress += 1
+
+        progress.last_update = today
+
+    else:
+        score = data.score
+
+        if score <= 0:
+            raise HTTPException(
+                status_code=400,
+                detail="Score precisa ser positivo",
+            )
+
+        progress.current_progress += score
+
+    if not progress.completed:
+        update_streak(current_user.id, datetime.now(UTC), session)
+
+    if progress.current_progress >= challenge.goal:
         progress.completed = True
         progress.current_progress = challenge.goal
+
         current_user.xp += challenge.xp_reward
         session.add(current_user)
-    else:
-        progress.current_progress = current_progress
 
     session.add(progress)
     session.commit()
     session.refresh(progress)
 
-    response = ProgressResponseSchema(
-        challenge_id = data.challenge_id,
-        current_progress = progress.current_progress,
-        completed = progress.completed
+    return ProgressResponseSchema(
+        challenge_id=data.challenge_id,
+        current_progress=progress.current_progress,
+        completed=progress.completed,
     )
-
-    return response
 
 
 

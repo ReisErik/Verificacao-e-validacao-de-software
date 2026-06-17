@@ -3,7 +3,7 @@ from unittest.mock import Mock, patch
 from app.validators.validate_auth import validateAuth
 from app.services.challenge_progression_service import get_progress_or_404, update_progress
 from app.models.challenge_progress import ChallengeProgress
-from app.schemas.challenge_schema import ProgressResponseSchema, ChallengeResponseSchema, UpdateProgressSchema
+from app.schemas.challenge_schema import ProgressResponseSchema, ChallengeResponseSchema, UpdateProgressSchema, ChallengeType
 from fastapi import HTTPException
 from datetime import datetime, UTC, timedelta
 
@@ -34,9 +34,10 @@ def test_get_progress_not_found():
     assert e.value.status_code == 404
     assert e.value.detail == "Usuario não está participando deste desafio"
 
+@patch("app.services.challenge_progression_service.update_streak")
 @patch("app.services.challenge_progression_service.get_challenge_or_404")
 @patch("app.services.challenge_progression_service.get_progress_or_404")
-def test_update_progress_success(progress_mock, challenge_mock):
+def test_update_progress_success(progress_mock, challenge_mock, update_streak_mock):
     """Sucesso: Atualizou progresso do desafio, finalizou e adicionou XP"""
     session = Mock()
 
@@ -60,6 +61,7 @@ def test_update_progress_success(progress_mock, challenge_mock):
         score=200
     )
 
+    update_streak_mock.return_value = 1
     progress_mock.return_value = progress
     challenge_mock.return_value = challenge
 
@@ -76,9 +78,10 @@ def test_update_progress_success(progress_mock, challenge_mock):
     session.add.assert_any_call(progress)
     session.add.assert_any_call(current_user)
 
+@patch("app.services.challenge_progression_service.update_streak")
 @patch("app.services.challenge_progression_service.get_challenge_or_404")
 @patch("app.services.challenge_progression_service.get_progress_or_404")
-def test_update_progress_partial_progress(progress_mock, challenge_mock):
+def test_update_progress_partial_progress(progress_mock, challenge_mock,update_streak_mock):
     """Sucesso: Atualizou progresso do desafio mas não completou"""
     session = Mock()
 
@@ -102,6 +105,7 @@ def test_update_progress_partial_progress(progress_mock, challenge_mock):
         score=200
     )
 
+    update_streak_mock.return_value = 1
     progress_mock.return_value = progress
     challenge_mock.return_value = challenge
 
@@ -114,6 +118,135 @@ def test_update_progress_partial_progress(progress_mock, challenge_mock):
     assert current_user.xp == 0
 
     session.commit.assert_called_once()
+
+@patch("app.services.challenge_progression_service.update_streak")
+@patch("app.services.challenge_progression_service.get_challenge_or_404")
+@patch("app.services.challenge_progression_service.get_progress_or_404")
+def test_update_progress_streak_success(progress_mock, challenge_mock, update_streak_mock):
+    """Sucesso: Atualizou progresso do desafio de Streak, finalizou e adicionou XP"""
+    session = Mock()
+
+    current_user = Mock()
+    current_user.xp = 0
+
+    progress = Mock()
+    progress.challenge_id = 1
+    progress.current_progress = 1
+    progress.completed = False
+    progress.last_update = (datetime.now(UTC) - timedelta(days=1)).date()
+
+    challenge = Mock()
+    challenge.id = 1
+    challenge.xp_reward = 100
+    challenge.goal = 2
+    challenge.start_date = datetime.now(UTC) - timedelta(days=1)
+    challenge.end_date = datetime.now(UTC) + timedelta(days=1)
+    challenge.type_challenge = ChallengeType.STREAK
+
+    data = UpdateProgressSchema(
+        challenge_id=1,
+        score=1
+    )
+
+    update_streak_mock.return_value = 1
+    progress_mock.return_value = progress
+    challenge_mock.return_value = challenge
+
+    response = update_progress(data, session, current_user)
+
+    session.commit.assert_called_once()
+    session.refresh.assert_called_with(progress)
+
+    assert response.current_progress == 2
+    assert response.completed is True
+
+    assert current_user.xp == 100
+
+    session.add.assert_any_call(progress)
+    session.add.assert_any_call(current_user)
+
+@patch("app.services.challenge_progression_service.update_streak")
+@patch("app.services.challenge_progression_service.get_challenge_or_404")
+@patch("app.services.challenge_progression_service.get_progress_or_404")
+def test_update_progress_streak_partial_progress(progress_mock, challenge_mock, update_streak_mock):
+    """Sucesso: Atualizou progresso do desafio Streak, finalizou e adicionou progresso"""
+    session = Mock()
+
+    current_user = Mock()
+    current_user.xp = 0
+
+    progress = Mock()
+    progress.challenge_id = 1
+    progress.current_progress = 1
+    progress.completed = False
+    progress.last_update = (datetime.now(UTC) - timedelta(days=1)).date()
+
+    challenge = Mock()
+    challenge.id = 1
+    challenge.xp_reward = 100
+    challenge.goal = 3
+    challenge.start_date = datetime.now(UTC) - timedelta(days=1)
+    challenge.end_date = datetime.now(UTC) + timedelta(days=1)
+    challenge.type_challenge = ChallengeType.STREAK
+
+    data = UpdateProgressSchema(
+        challenge_id=1,
+        score=1
+    )
+
+    update_streak_mock.return_value = 1
+    progress_mock.return_value = progress
+    challenge_mock.return_value = challenge
+
+    response = update_progress(data, session, current_user)
+
+    session.commit.assert_called_once()
+    session.refresh.assert_called_with(progress)
+
+    assert progress.current_progress == 2
+    assert progress.completed is False
+    assert response.current_progress == 2
+    assert response.completed is False
+    assert current_user.xp == 0
+
+@patch("app.services.challenge_progression_service.update_streak")
+@patch("app.services.challenge_progression_service.get_challenge_or_404")
+@patch("app.services.challenge_progression_service.get_progress_or_404")
+def test_update_progress_streak_partial_progress(progress_mock, challenge_mock, update_streak_mock):
+    """Sucesso: Atualizou progresso do desafio Streak, finalizou e adicionou progresso"""
+    session = Mock()
+
+    current_user = Mock()
+    current_user.xp = 0
+
+    progress = Mock()
+    progress.challenge_id = 1
+    progress.current_progress = 1
+    progress.completed = False
+    progress.last_update = datetime.now(UTC).date()
+
+    challenge = Mock()
+    challenge.id = 1
+    challenge.xp_reward = 100
+    challenge.goal = 3
+    challenge.start_date = datetime.now(UTC) - timedelta(days=1)
+    challenge.end_date = datetime.now(UTC) + timedelta(days=1)
+    challenge.type_challenge = ChallengeType.STREAK
+
+    data = UpdateProgressSchema(
+        challenge_id=1,
+        score=1
+    )
+
+    update_streak_mock.return_value = 1
+    progress_mock.return_value = progress
+    challenge_mock.return_value = challenge
+
+    with pytest.raises(HTTPException) as e:
+        update_progress(data, session, current_user)
+
+    assert e.value.status_code == 400
+    assert e.value.detail == "Você já registrou progresso hoje."
 
 @patch("app.services.challenge_progression_service.get_challenge_or_404")
 @patch("app.services.challenge_progression_service.get_progress_or_404")
@@ -245,4 +378,4 @@ def test_update_progress_challenge_already_completed(progress_mock, challenge_mo
         update_progress(data, session, current_user)
     
     assert e.value.status_code == 400
-    assert e.value.detail == "Usuario já completou o desafio"
+    assert e.value.detail == "Usuário já completou o desafio"
