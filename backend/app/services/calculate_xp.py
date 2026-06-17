@@ -1,6 +1,7 @@
 from datetime import datetime
 from app.schemas.challenge_schema import ChallengeType
 
+
 def calculate_xp(
     goal: float,
     start_date: datetime,
@@ -13,27 +14,20 @@ def calculate_xp(
 
     base_xp = 50
 
-    effort_per_day = goal / duration_days
-
     if challenge_type == ChallengeType.STREAK:
-        normalized_effort = effort_per_day
+        normalized_effort = (goal - 3) / (30 - 3)
 
     elif challenge_type == ChallengeType.TIME:
-        normalized_effort = effort_per_day / 3
+        hours_per_day = goal / duration_days
+        normalized_effort = (hours_per_day - 0.25) / (3 - 0.25)
 
-    else:
-        normalized_effort = effort_per_day / 20
+    else: 
+        amount_per_day = goal / duration_days
+        normalized_effort = (amount_per_day - 1) / (20 - 1)
 
-    effort_score = normalized_effort * 100
+    normalized_effort = max(0.0, min(normalized_effort, 1.0))
 
-    if duration_days < 7:
-        duration_bonus = duration_days * 2
-    elif duration_days < 21:
-        duration_bonus = duration_days * 3
-    elif duration_days < 30:
-        duration_bonus = duration_days * 4
-    else:
-        duration_bonus = duration_days * 5
+    effort_xp = 50 + normalized_effort * 200
 
     category_bonus = {
         "Leitura": 10,
@@ -43,11 +37,19 @@ def calculate_xp(
         "Saude": 30,
     }.get(category or "", 0)
 
-    final_xp = int(
-        base_xp
-        + effort_score
-        + duration_bonus
-        + category_bonus
-    )
+    subtotal = base_xp + effort_xp + category_bonus
 
-    return max(50, min(final_xp, 1000))
+    if duration_days >= 30:
+        multiplier = 1.20
+    elif duration_days >= 21:
+        multiplier = 1.15
+    elif duration_days >= 14:
+        multiplier = 1.10
+    elif duration_days >= 7:
+        multiplier = 1.05
+    else:
+        multiplier = 1.00
+
+    final_xp = int(subtotal * multiplier)
+
+    return final_xp
