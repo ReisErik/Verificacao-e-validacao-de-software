@@ -6,6 +6,7 @@ from enum import Enum
 class ChallengeType(Enum):
     STREAK = "STREAK"
     TIME = "TIME"
+    AMOUNT = "AMOUNT"
 
 class CreateChallengeSchema(BaseModel):
     name: str

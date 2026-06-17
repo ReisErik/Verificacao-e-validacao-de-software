@@ -15,12 +15,18 @@ def validate_goal(goal, duration_days, challenge_type):
     effort_per_day = goal / duration_days
 
     if challenge_type == ChallengeType.STREAK:
-        if goal > 30:
+        if goal > duration_days:
+            raise HTTPException(
+                status_code=400,
+                detail="Desafios STREAK não podem ter meta maior que a duração."
+            )
+
+        elif goal > 30:
             raise HTTPException(
                 status_code=400,
                 detail="Desafios STREAK podem ter no máximo 30 dias."
             )
-        elif goal < 2:
+        elif goal < 3:
             raise HTTPException(
                 status_code=400,
                 detail="Desafios Streak precisam ter no mínimo 3 dias"
@@ -50,7 +56,7 @@ def validate_goal(goal, duration_days, challenge_type):
                 detail="Desafios AMOUNT precisam ter pelo menos 1 unidade por dia."
             )
 
-def create_challenge(data: CreateChallengeSchema ,session,current_user):
+def create_challenge(data: CreateChallengeSchema ,session, current_user):
     validateAuth(current_user)
 
     if data.end_date <= data.start_date:
