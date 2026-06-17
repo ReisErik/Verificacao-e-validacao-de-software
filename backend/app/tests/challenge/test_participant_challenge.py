@@ -304,7 +304,7 @@ def test_leave_challenge_and_delete_success(challenge_mock, challenge_participat
     assert leave_challenge(1,session, current_user) == {
         "message": "Usuario saiu do desafio"
     }
-    session.delete.assert_called_once()
+    assert session.delete.call_count == 3
     session.commit.assert_called_once()
 
 @patch("app.services.challenge_participant_service.get_latest_user_challenge_or_none")

@@ -23,6 +23,7 @@ export default function InviteCard({
             <h2 className="text-lg font-semibold">
             Desafio {invite.challenge_id}
             </h2>
+            <p className="text-sm text-muted-foreground"></p>
         </div>
 
         <div className="flex gap-2">

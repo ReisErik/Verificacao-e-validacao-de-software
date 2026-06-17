@@ -5,7 +5,13 @@ import InviteCard from "./inviteCard";
 import type { Invite } from "@/schemas/invite";
 import { getAllReceivedInvites } from "@/services/invite";
 
-export default function InvitePanel() {
+interface InvitePanelProps {
+  compact?: boolean;
+}
+
+export default function InvitePanel({
+  compact = false,
+}: InvitePanelProps) {
   const [invites, setInvites] = useState<Invite[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -28,13 +34,21 @@ export default function InvitePanel() {
     return <h1>Carregando convites...</h1>;
   }
 
-  if (invites.length === 0) {
-    return <h1>Nenhum convite recebido.</h1>;
+  const pendingInvites = invites.filter(
+    (invite) => invite.answer === null
+  );
+
+  const displayedInvites = compact
+    ? pendingInvites.slice(0, 3)
+    : pendingInvites;
+
+  if (displayedInvites.length === 0) {
+    return <h1>Nenhum convite pendente.</h1>;
   }
 
   return (
-    <div className="max-w-3xl mx-auto space-y-4">
-      {invites.map((invite) => (
+    <div className="space-y-4">
+      {displayedInvites.map((invite) => (
         <InviteCard
           key={invite.id}
           invite={invite}
@@ -45,3 +59,4 @@ export default function InvitePanel() {
     </div>
   );
 }
+

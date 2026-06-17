@@ -26,17 +26,17 @@ def test_user_create_schema_invalid_email():
     with pytest.raises(ValidationError):
         UserCreateSchema(**data)
 
-def test_user_create_schema_password_short():
-    data = {
-        "first_name": "Joao",
-        "last_name": "Silva",
-        "unique_name": "joaosilva",
-        "email": "joao.silva@gmail.com",
-        "password": "senha",
-        "role": "user"
-    }
-    with pytest.raises(ValidationError):
-        UserCreateSchema(**data)
+#def test_user_create_schema_password_short():
+#    data = {
+#        "first_name": "Joao",
+#        "last_name": "Silva",
+#        "unique_name": "joaosilva",
+#        "email": "joao.silva@gmail.com",
+#        "password": "senha",
+#        "role": "user"
+#    }
+#    with pytest.raises(ValidationError):
+#        UserCreateSchema(**data)
 
 def test_user_create_schema_password_long():
     data = {

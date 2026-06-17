@@ -12,6 +12,7 @@ class Challenge(SQLModel, table=True):
     end_date: datetime
     goal: int
     visibility: bool = False
+    category: str
     type_challenge: ChallengeType
     created_at: datetime = Field(default_factory=datetime.now)
     updated_at: datetime = Field(default_factory=datetime.now)

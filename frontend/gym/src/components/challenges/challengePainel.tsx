@@ -5,7 +5,11 @@ import { getAllChallenge } from "@/services/challenge";
 
 import ChallengeCard from "./challengeCard";
 
-export default function ChallengePanel() {
+interface ChallengePanelProps {
+  compact?: boolean;
+}
+
+export default function ChallengePanel({compact = false} : ChallengePanelProps) {
   const [challenges, setChallenges] = useState<Challenge[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -32,9 +36,12 @@ export default function ChallengePanel() {
     return <h1>Nenhum desafio encontrado.</h1>;
   }
 
+  const displayedChallenges = compact 
+  ? challenges.slice(0,3) : challenges
+
   return (
     <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-      {challenges.map((challenge) => (
+      {displayedChallenges.map((challenge) => (
         <ChallengeCard key={challenge.id} challenge={challenge} />
       ))}
     </div>

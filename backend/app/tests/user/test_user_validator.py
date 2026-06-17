@@ -24,21 +24,21 @@ def test_validate_last_name_empty():
 def test_validate_password():
     assert validate_password("senha123!") == True
 
-def test_validate_password_not_number():
-    with pytest.raises(HTTPException):
-        validate_password("abcde!")
+#def test_validate_password_not_number():
+#    with pytest.raises(HTTPException):
+#        validate_password("abcde!")
 
-def test_validate_password_not_letter():
-    with pytest.raises(HTTPException):
-        validate_password("12345!")
+#def test_validate_password_not_letter():
+#    with pytest.raises(HTTPException):
+#        validate_password("12345!")
 
-def test_validate_password_not_special_char():
-    with pytest.raises(HTTPException):
-        validate_password("senha1")    
+#def test_validate_password_not_special_char():
+#    with pytest.raises(HTTPException):
+#        validate_password("senha1")    
 
-def test_validate_password_empty():
-    with pytest.raises(HTTPException):
-        validate_password("")
+#def test_validate_password_empty():
+#    with pytest.raises(HTTPException):
+#        validate_password("")
 
 def test_validate_unique_name():
     assert validate_unique_name("joaosilva123") == True

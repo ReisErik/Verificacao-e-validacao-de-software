@@ -20,12 +20,12 @@ def test_create_challenge_success():
     data = CreateChallengeSchema(
         name="Desafio teste",
         description="Teste",
-        xp_reward=100,
         start_date=datetime.now(UTC),
         end_date=datetime.now(UTC) + timedelta(days=7),
-        goal=200,
+        goal=14,
         visibility=False,
-        type_challenge="TIME"
+        type_challenge="TIME",
+        category="Estudos"
     )
 
     result = create_challenge(data, session, current_user)
@@ -35,7 +35,7 @@ def test_create_challenge_success():
 
     assert result.owner == 1
     assert result.name == "Desafio teste"
-    assert result.goal == 200
+    assert result.goal == 14
 
 def test_create_challenge_invalid_date():
     session = Mock()
@@ -46,12 +46,12 @@ def test_create_challenge_invalid_date():
     data = CreateChallengeSchema(
         name="Desafio teste",
         description="Teste",
-        xp_reward=100,
         start_date=datetime.now(UTC),
         end_date=datetime.now(UTC) - timedelta(days=1),
-        goal=200,
+        goal=14,
         visibility=False,
-        type_challenge="TIME"
+        type_challenge="TIME",
+        category="Estudos"
     )
 
     with pytest.raises(HTTPException) as e: 

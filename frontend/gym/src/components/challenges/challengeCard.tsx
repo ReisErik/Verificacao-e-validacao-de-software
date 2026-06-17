@@ -42,12 +42,15 @@ export default function ChallengeCard({challenge,}: {challenge: Challenge | null
     }
 
     const progressValue = progression? (progression.current_progress / challenge.goal) * 100: 0;
+    
+
 
     return (
         <Card>
-            <CardContent className="space-y-3">
+            <CardContent className="space-y-2">
                 <h1 className="text-lg font-bold">{challenge.name}</h1>
                 <h2>{challenge.type_challenge}</h2>
+                <p>{challenge.category}</p>
 
                 <div>
                     <div className="flex justify-between mb-2">

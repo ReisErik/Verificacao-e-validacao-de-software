@@ -8,6 +8,47 @@ from app.services.user_services import get_user_or_404
 from sqlmodel import select
 from datetime import datetime, UTC
 from app.schemas.challenge_schema import CreateChallengeSchema, JoinChallengeSchema
+from app.services.calculate_xp import calculate_xp
+from app.schemas.challenge_schema import ChallengeType
+  
+def validate_goal(goal, duration_days, challenge_type):
+    effort_per_day = goal / duration_days
+
+    if challenge_type == ChallengeType.STREAK:
+        if goal > 30:
+            raise HTTPException(
+                status_code=400,
+                detail="Desafios STREAK podem ter no máximo 30 dias."
+            )
+        elif goal < 2:
+            raise HTTPException(
+                status_code=400,
+                detail="Desafios Streak precisam ter no mínimo 3 dias"
+            )
+
+    elif challenge_type == ChallengeType.TIME:
+        if effort_per_day > 3:
+            raise HTTPException(
+                status_code=400,
+                detail="Desafios TIME não podem exigir mais de 3 horas por dia."
+            )
+        elif effort_per_day < 0.25:
+            raise HTTPException(
+                status_code=400,
+                detail="Desafios TIME precisam ter pelo menos 15 minutos por dia."
+            )
+
+    elif challenge_type == ChallengeType.AMOUNT:
+        if effort_per_day > 20:
+            raise HTTPException(
+                status_code=400,
+                detail="Desafios AMOUNT não podem exigir mais de 20 unidades por dia."
+            )
+        elif effort_per_day < 1:
+            raise HTTPException(
+                status_code=400,
+                detail="Desafios AMOUNT precisam ter pelo menos 1 unidade por dia."
+            )
 
 def create_challenge(data: CreateChallengeSchema ,session,current_user):
     validateAuth(current_user)
@@ -18,16 +59,33 @@ def create_challenge(data: CreateChallengeSchema ,session,current_user):
             detail="Data final deve ser maior que a inicial."
         )
 
+    duration_days = max((data.end_date - data.start_date).days, 1)
+
+    validate_goal(
+        goal=data.goal,
+        duration_days=duration_days,
+        challenge_type=data.type_challenge,
+    )
+
+    xp_reward = calculate_xp(
+        goal=data.goal,
+        start_date=data.start_date,
+        end_date=data.end_date,
+        challenge_type=data.type_challenge,
+        category=data.category,
+        )
+
     challenge = Challenge(
         owner = current_user.id,
         name = data.name,
         description = data.description,
-        xp_reward = data.xp_reward,
+        xp_reward = xp_reward,
         type_challenge = data.type_challenge,
         goal = data.goal,
         visibility = data.visibility,
         start_date = data.start_date,
         end_date = data.end_date,
+        category = data.category,
     )
 
     session.add(challenge)
