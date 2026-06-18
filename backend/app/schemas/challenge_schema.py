@@ -45,6 +45,11 @@ class ProgressResponseSchema(BaseModel):
     current_progress: float
     completed: bool
 
+class ChallengeLogSchema(BaseModel):
+    challenge_id: int
+    user_id: int
+    score: float
+
 
 
         

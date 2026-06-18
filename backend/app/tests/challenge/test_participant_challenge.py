@@ -2,7 +2,7 @@ from app.services.challenge_participant_service import ensure_not_participant, j
 from unittest.mock import Mock, patch
 from fastapi import HTTPException
 import pytest
-from datetime import datetime, UTC, timedelta
+from datetime import datetime, UTC, timedelta, date
 
 def test_ensure_not_participant():
     """Correto: Verifica se usuario não está participando do desafio"""
@@ -51,6 +51,7 @@ def test_join_challenge_accept_success(mock_get_challenge, mock_get_invite, mock
     invite_mock.challenge_id = 10
     invite_mock.receiver_id = 2  
     invite_mock.answer = None    
+    invite_mock.created_at = date.today()
 
     mock_get_invite.return_value = invite_mock
 
@@ -84,6 +85,7 @@ def test_join_challenge_expired(mock_get_challenge, mock_get_invite, mock_ensure
     invite_mock = Mock()
     invite_mock.receiver_id = 2
     invite_mock.answer = None
+    invite_mock.created_at = date.today()
 
     mock_get_invite.return_value = invite_mock
 
@@ -116,6 +118,7 @@ def test_join_challenge_invite_wrong_user(mock_get_challenge, mock_get_invite, m
     invite_mock = Mock()
     invite_mock.receiver_id = 3
     invite_mock.answer = None
+    invite_mock.created_at = date.today()
     
     mock_get_invite.return_value = invite_mock
 
@@ -150,6 +153,7 @@ def test_join_challenge_refuse_success(mock_get_challenge,mock_get_invite,mock_e
     invite_mock = Mock()
     invite_mock.receiver_id = 2
     invite_mock.answer = None
+    invite_mock.created_at = date.today()
 
     mock_get_invite.return_value = invite_mock
 
@@ -181,6 +185,7 @@ def test_join_challenge_already_answered_true(mock_get_challenge, mock_get_invit
     invite_mock = Mock()
     invite_mock.receiver_id = 2
     invite_mock.answer = True
+    invite_mock.created_at = date.today()
 
     mock_get_invite.return_value = invite_mock
 
@@ -213,6 +218,7 @@ def test_join_challenge_already_answered_false(mock_get_challenge, mock_get_invi
     invite_mock = Mock()
     invite_mock.receiver_id = 2
     invite_mock.answer = False
+    invite_mock.created_at = date.today()
 
     mock_get_invite.return_value = invite_mock
 

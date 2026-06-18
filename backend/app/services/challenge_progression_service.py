@@ -8,6 +8,7 @@ from fastapi import HTTPException
 from datetime import datetime, UTC
 from app.schemas.challenge_schema import ChallengeType
 from app.services.user_services import update_streak
+from app.services.challenge_log_service import create_log
 
 def get_progress_or_404(challenge_id: int, session, current_user):
     validateAuth(current_user)
@@ -89,6 +90,13 @@ def update_progress(data: UpdateProgressSchema, session, current_user):
 
         current_user.xp += challenge.xp_reward
         session.add(current_user)
+
+    create_log(
+        challenge_id=data.challenge_id,
+        user_id=current_user.id,
+        score=score if challenge.type_challenge != ChallengeType.STREAK else 1,
+        session=session,
+    )
 
     session.add(progress)
     session.commit()

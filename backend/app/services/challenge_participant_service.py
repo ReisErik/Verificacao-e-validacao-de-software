@@ -6,7 +6,7 @@ from app.services.challenge_service import get_challenge_or_404
 from app.services.challenge_invite_service import get_invite_or_404
 from app.services.challenge_progression_service import get_progress_or_404
 from app.models.challenge_progress import ChallengeProgress
-from datetime import datetime, UTC
+from datetime import datetime, UTC, date
 from app.schemas.challenge_schema import JoinChallengeSchema
 from app.utils.ensure_utc import ensure_utc
 
@@ -33,7 +33,15 @@ def join_or_refuse_challenge(data: JoinChallengeSchema , session, current_user):
     challenge = get_challenge_or_404(data.challenge_id, session, current_user)
     invite = get_invite_or_404(data.invite_id, session, current_user)
     ensure_not_participant(current_user.id, challenge.id, session, current_user)
-    print(challenge.end_date, challenge.end_date.tzinfo)
+
+    if (date.today() - invite.created_at).days > 7:
+        invite.answer = False
+        session.add(invite)
+        session.commit()
+        raise HTTPException(
+            status_code=403,
+            detail="Convite expirado"
+        )
 
     if invite.receiver_id != current_user.id:
         raise HTTPException(

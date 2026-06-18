@@ -34,10 +34,11 @@ def test_get_progress_not_found():
     assert e.value.status_code == 404
     assert e.value.detail == "Usuario não está participando deste desafio"
 
+@patch("app.services.challenge_progression_service.create_log")
 @patch("app.services.challenge_progression_service.update_streak")
 @patch("app.services.challenge_progression_service.get_challenge_or_404")
 @patch("app.services.challenge_progression_service.get_progress_or_404")
-def test_update_progress_success(progress_mock, challenge_mock, update_streak_mock):
+def test_update_progress_success(progress_mock, challenge_mock, update_streak_mock, create_log_mock):
     """Sucesso: Atualizou progresso do desafio, finalizou e adicionou XP"""
     session = Mock()
 
@@ -61,6 +62,7 @@ def test_update_progress_success(progress_mock, challenge_mock, update_streak_mo
         score=200
     )
 
+    create_log_mock.return_value = 1
     update_streak_mock.return_value = 1
     progress_mock.return_value = progress
     challenge_mock.return_value = challenge
@@ -78,10 +80,11 @@ def test_update_progress_success(progress_mock, challenge_mock, update_streak_mo
     session.add.assert_any_call(progress)
     session.add.assert_any_call(current_user)
 
+@patch("app.services.challenge_progression_service.create_log")
 @patch("app.services.challenge_progression_service.update_streak")
 @patch("app.services.challenge_progression_service.get_challenge_or_404")
 @patch("app.services.challenge_progression_service.get_progress_or_404")
-def test_update_progress_partial_progress(progress_mock, challenge_mock,update_streak_mock):
+def test_update_progress_partial_progress(progress_mock, challenge_mock,update_streak_mock, create_log_mock):
     """Sucesso: Atualizou progresso do desafio mas não completou"""
     session = Mock()
 
@@ -105,6 +108,7 @@ def test_update_progress_partial_progress(progress_mock, challenge_mock,update_s
         score=200
     )
 
+    create_log_mock.return_value = 1
     update_streak_mock.return_value = 1
     progress_mock.return_value = progress
     challenge_mock.return_value = challenge
@@ -119,10 +123,11 @@ def test_update_progress_partial_progress(progress_mock, challenge_mock,update_s
 
     session.commit.assert_called_once()
 
+@patch("app.services.challenge_progression_service.create_log")
 @patch("app.services.challenge_progression_service.update_streak")
 @patch("app.services.challenge_progression_service.get_challenge_or_404")
 @patch("app.services.challenge_progression_service.get_progress_or_404")
-def test_update_progress_streak_success(progress_mock, challenge_mock, update_streak_mock):
+def test_update_progress_streak_success(progress_mock, challenge_mock, update_streak_mock, create_log_mock):
     """Sucesso: Atualizou progresso do desafio de Streak, finalizou e adicionou XP"""
     session = Mock()
 
@@ -148,6 +153,7 @@ def test_update_progress_streak_success(progress_mock, challenge_mock, update_st
         score=1
     )
 
+    create_log_mock.return_value = 1
     update_streak_mock.return_value = 1
     progress_mock.return_value = progress
     challenge_mock.return_value = challenge
@@ -165,10 +171,11 @@ def test_update_progress_streak_success(progress_mock, challenge_mock, update_st
     session.add.assert_any_call(progress)
     session.add.assert_any_call(current_user)
 
+@patch("app.services.challenge_progression_service.create_log")
 @patch("app.services.challenge_progression_service.update_streak")
 @patch("app.services.challenge_progression_service.get_challenge_or_404")
 @patch("app.services.challenge_progression_service.get_progress_or_404")
-def test_update_progress_streak_partial_progress(progress_mock, challenge_mock, update_streak_mock):
+def test_update_progress_streak_partial_progress(progress_mock, challenge_mock, update_streak_mock, create_log_mock):
     """Sucesso: Atualizou progresso do desafio Streak, finalizou e adicionou progresso"""
     session = Mock()
 
@@ -194,6 +201,7 @@ def test_update_progress_streak_partial_progress(progress_mock, challenge_mock, 
         score=1
     )
 
+    create_log_mock.return_value = 1
     update_streak_mock.return_value = 1
     progress_mock.return_value = progress
     challenge_mock.return_value = challenge

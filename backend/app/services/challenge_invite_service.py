@@ -42,9 +42,10 @@ def invite_challenge(challenge_id: int, user_invitated_id: int, session, current
     
     invite = ChallengeInvite(
         sender_id=current_user.id,
+        sender_name=f"{current_user.first_name} {current_user.last_name}",
         receiver_id=user_invitated_id,
         challenge_id=challenge_id,
-        sent=True
+        challenge_name=challenge.name,
     )
 
     session.add(invite)

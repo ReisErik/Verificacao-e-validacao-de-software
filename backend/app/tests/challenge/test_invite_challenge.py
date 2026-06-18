@@ -73,8 +73,6 @@ def test_invite_challenge_success(mock_get_user, mock_get_challenge, mock_invite
     assert result.sender_id == 1
     assert result.receiver_id == 2
     assert result.challenge_id == 10
-    assert result.sent is True
-
 
 @patch("app.services.challenge_invite_service.invite_exists")
 @patch("app.services.challenge_invite_service.get_challenge_or_404")
