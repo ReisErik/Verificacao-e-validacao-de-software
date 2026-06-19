@@ -64,16 +64,14 @@ def reward_all_participants(challenge, session):
 
         user.xp += challenge.xp_reward
         progress.xp_granted = True
-        progress.completed = True
-        progress.current_progress = challenge.goal
 
     session.commit()
 
-def all_participants_completed(challenge_id: int, session) -> bool:
+def all_participants_completed(challenge, session) -> bool:
     pending = session.exec(
         select(ChallengeProgress)
         .where(
-            ChallengeProgress.challenge_id == challenge_id,
+            ChallengeProgress.challenge_id == challenge.id,
             ChallengeProgress.completed == False,
         )
         .limit(1)
@@ -157,15 +155,18 @@ def update_progress(data: UpdateProgressSchema, session, current_user):
         update_streak(current_user.id, datetime.now(UTC), session)
 
     if progress.current_progress >= challenge.goal:
+        progress.completed = True
+        progress.current_progress = challenge.goal
+
+        session.flush()
+
         if challenge.mode_challenge == ChallengeMode.SOLO and not progress.xp_granted:
             reward_user(current_user, challenge, session)
-            progress.completed = True
             progress.xp_granted = True
-            progress.current_progress = challenge.goal
 
         elif challenge.mode_challenge == ChallengeMode.GROUP and not progress.xp_granted:
-            if all_participants_completed(challenge.id, session):
-                reward_all_participants(challenge.id, session)
+            if all_participants_completed(challenge, session):
+                reward_all_participants(challenge, session)
 
     create_log(
         challenge_id=data.challenge_id,

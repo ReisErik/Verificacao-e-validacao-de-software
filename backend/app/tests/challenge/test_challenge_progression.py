@@ -752,13 +752,7 @@ def test_reward_all_participants():
     assert user1.xp == 100
     assert user2.xp == 150
 
-    assert progress1.completed is True
-    assert progress2.completed is True
-
     assert progress1.xp_granted is True
     assert progress2.xp_granted is True
-
-    assert progress1.current_progress == challenge.goal
-    assert progress2.current_progress == challenge.goal
 
     session.commit.assert_called_once()
