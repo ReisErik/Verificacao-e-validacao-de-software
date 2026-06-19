@@ -25,7 +25,8 @@ def test_create_challenge_streak_success():
         goal=5,
         visibility=False,
         type_challenge="STREAK",
-        category="Estudos"
+        category="Estudos",
+        mode_challenge="SOLO"
     )
 
     result = create_challenge(data, session, current_user)
@@ -51,7 +52,8 @@ def test_create_challenge_streak_limits():
         goal=30,
         visibility=False,
         type_challenge="STREAK",
-        category="Estudos"
+        category="Estudos",
+        mode_challenge="SOLO"
     )
 
     dataLimitBottom = CreateChallengeSchema(
@@ -62,7 +64,8 @@ def test_create_challenge_streak_limits():
         goal=3,
         visibility=False,
         type_challenge="STREAK",
-        category="Estudos"
+        category="Estudos",
+        mode_challenge="SOLO"
     )
 
     resultUpper = create_challenge(dataLimitUpper,session,current_user)
@@ -85,7 +88,8 @@ def test_create_challenge_time_success():
         goal=14,
         visibility=False,
         type_challenge="TIME",
-        category="Estudos"
+        category="Estudos",
+        mode_challenge="SOLO"
     )
 
     result = create_challenge(data, session, current_user)
@@ -111,7 +115,8 @@ def test_create_challenge_time_limits():
         goal=21,
         visibility=False,
         type_challenge="TIME",
-        category="Estudos"
+        category="Estudos",
+        mode_challenge="SOLO"
     )
 
     dataLimitBottom = CreateChallengeSchema(
@@ -122,7 +127,8 @@ def test_create_challenge_time_limits():
         goal=1,
         visibility=False,
         type_challenge="TIME",
-        category="Estudos"
+        category="Estudos",
+        mode_challenge="SOLO"
     )
 
     resultUpper = create_challenge(dataLimitUpper,session,current_user)
@@ -145,7 +151,8 @@ def test_create_challenge_amount_success():
         goal=100,
         visibility=False,
         type_challenge="AMOUNT",
-        category="Estudos"
+        category="Estudos",
+        mode_challenge="SOLO"
     )
 
     result = create_challenge(data, session, current_user)
@@ -171,7 +178,8 @@ def test_create_challenge_amount_limits():
         goal=140,
         visibility=False,
         type_challenge="AMOUNT",
-        category="Estudos"
+        category="Estudos",
+        mode_challenge="SOLO"
     )
 
     dataLimitBottom = CreateChallengeSchema(
@@ -182,7 +190,8 @@ def test_create_challenge_amount_limits():
         goal=7,
         visibility=False,
         type_challenge="AMOUNT",
-        category="Estudos"
+        category="Estudos",
+        mode_challenge="SOLO"
     )
 
     resultUpper = create_challenge(dataLimitUpper,session,current_user)
@@ -205,7 +214,8 @@ def test_create_challenge_streak_more_duration():
         goal=8,
         visibility=False,
         type_challenge="STREAK",
-        category="Estudos"
+        category="Estudos",
+        mode_challenge="SOLO"
     )
 
     with pytest.raises(HTTPException) as e:
@@ -228,7 +238,8 @@ def test_create_challenge_streak_more_30_days():
         goal=31,
         visibility=False,
         type_challenge="STREAK",
-        category="Estudos"
+        category="Estudos",
+        mode_challenge="SOLO"
     )
     
     with pytest.raises(HTTPException) as e:
@@ -251,7 +262,8 @@ def test_create_challenge_streak_less_3_days():
         goal=2,
         visibility=False,
         type_challenge="STREAK",
-        category="Estudos"
+        category="Estudos",
+        mode_challenge="SOLO"
     )
     
     with pytest.raises(HTTPException) as e:
@@ -274,7 +286,8 @@ def test_create_challenge_time_more_3_hours_days():
         goal=22,
         visibility=False,
         type_challenge="TIME",
-        category="Estudos"
+        category="Estudos",
+        mode_challenge="SOLO"
     )
 
     with pytest.raises(HTTPException) as e:
@@ -297,7 +310,8 @@ def test_create_challenge_time_less_15_minutes_days():
         goal=2,
         visibility=False,
         type_challenge="TIME",
-        category="Estudos"
+        category="Estudos",
+        mode_challenge="SOLO"
     )
 
     with pytest.raises(HTTPException) as e:
@@ -320,7 +334,8 @@ def test_create_challenge_amount_more_20_units_days():
         goal=141,
         visibility=False,
         type_challenge="AMOUNT",
-        category="Estudos"
+        category="Estudos",
+        mode_challenge="SOLO"
     )
 
     with pytest.raises(HTTPException) as e:
@@ -343,7 +358,8 @@ def test_create_challenge_amount_less_1_unit_days():
         goal=6,
         visibility=False,
         type_challenge="AMOUNT",
-        category="Estudos"
+        category="Estudos",
+        mode_challenge="SOLO"
     )
 
     with pytest.raises(HTTPException) as e:
@@ -366,7 +382,8 @@ def test_create_challenge_invalid_date():
         goal=14,
         visibility=False,
         type_challenge="TIME",
-        category="Estudos"
+        category="Estudos",
+        mode_challenge="SOLO"
     )
 
     with pytest.raises(HTTPException) as e: 

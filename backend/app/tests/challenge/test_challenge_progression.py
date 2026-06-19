@@ -1,11 +1,11 @@
 import pytest
 from unittest.mock import Mock, patch
 from app.validators.validate_auth import validateAuth
-from app.services.challenge_progression_service import get_progress_or_404, update_progress
+from app.services.challenge_progression_service import get_progress_or_404, update_progress, reward_all_participants
 from app.models.challenge_progress import ChallengeProgress
-from app.schemas.challenge_schema import ProgressResponseSchema, ChallengeResponseSchema, UpdateProgressSchema, ChallengeType
+from app.schemas.challenge_schema import ProgressResponseSchema, ChallengeResponseSchema, UpdateProgressSchema, ChallengeType,ChallengeMode
 from fastapi import HTTPException
-from datetime import datetime, UTC, timedelta
+from datetime import datetime, UTC, timedelta, date
 
 def test_get_progress_success():
     """Sucesso: Retorna o progresso do desafio"""
@@ -50,6 +50,7 @@ def test_update_progress_time_success(progress_mock, challenge_mock, update_stre
     progress.challenge_id = 1
     progress.current_progress = 12
     progress.completed = False
+    progress.xp_granted = False
 
     challenge = Mock()
     challenge.id = 1
@@ -58,6 +59,7 @@ def test_update_progress_time_success(progress_mock, challenge_mock, update_stre
     challenge.start_date = datetime.now(UTC) - timedelta(days=1)
     challenge.end_date = datetime.now(UTC) + timedelta(days=5)
     challenge.type_challenge = ChallengeType.TIME
+    challenge.mode_challenge = ChallengeMode.SOLO
 
     data = UpdateProgressSchema(
         challenge_id=1,
@@ -145,6 +147,7 @@ def test_update_progress_amount_success(progress_mock, challenge_mock, update_st
     progress.challenge_id = 1
     progress.current_progress = 65
     progress.completed = False
+    progress.xp_granted = False
 
     challenge = Mock()
     challenge.id = 1
@@ -153,6 +156,7 @@ def test_update_progress_amount_success(progress_mock, challenge_mock, update_st
     challenge.start_date = datetime.now(UTC) - timedelta(days=1)
     challenge.end_date = datetime.now(UTC) + timedelta(days=5)
     challenge.type_challenge = ChallengeType.AMOUNT
+    challenge.mode_challenge = ChallengeMode.SOLO
 
     data = UpdateProgressSchema(
         challenge_id=1,
@@ -408,6 +412,8 @@ def test_update_progress_streak_success(progress_mock, challenge_mock, update_st
     progress.current_progress = 1
     progress.completed = False
     progress.last_update = (datetime.now(UTC) - timedelta(days=1)).date()
+    progress.xp_granted = False
+    progress.last_update = date.today() - timedelta(days=1)
 
     challenge = Mock()
     challenge.id = 1
@@ -416,6 +422,7 @@ def test_update_progress_streak_success(progress_mock, challenge_mock, update_st
     challenge.start_date = datetime.now(UTC) - timedelta(days=1)
     challenge.end_date = datetime.now(UTC) + timedelta(days=1)
     challenge.type_challenge = ChallengeType.STREAK
+    challenge.mode_challenge = ChallengeMode.SOLO
 
     data = UpdateProgressSchema(
         challenge_id=1,
@@ -656,3 +663,102 @@ def test_update_progress_challenge_already_completed(progress_mock, challenge_mo
     
     assert e.value.status_code == 400
     assert e.value.detail == "Usuário já completou o desafio"
+
+@patch("app.services.challenge_progression_service.get_total_score_today")
+@patch("app.services.challenge_progression_service.create_log")
+@patch("app.services.challenge_progression_service.update_streak")
+@patch("app.services.challenge_progression_service.get_challenge_or_404")
+@patch("app.services.challenge_progression_service.get_progress_or_404")
+def test_update_progress_xp_not_received_two_times(progress_mock, challenge_mock, update_streak_mock, create_log_mock, total_score_mock):
+    """Sucesso: Atualizou progresso do desafio, finalizou e adicionou XP"""
+    session = Mock()
+
+    current_user = Mock()
+    current_user.xp = 0
+
+    progress = Mock()
+    progress.challenge_id = 1
+    progress.current_progress = 65
+    progress.completed = False
+    progress.xp_granted = True
+
+    challenge = Mock()
+    challenge.id = 1
+    challenge.xp_reward = 100
+    challenge.goal = 70
+    challenge.start_date = datetime.now(UTC) - timedelta(days=1)
+    challenge.end_date = datetime.now(UTC) + timedelta(days=5)
+    challenge.type_challenge = ChallengeType.AMOUNT
+    challenge.mode_challenge = ChallengeMode.SOLO
+
+    data = UpdateProgressSchema(
+        challenge_id=1,
+        score=5
+    )
+
+    create_log_mock.return_value = 1
+    update_streak_mock.return_value = 1
+    progress_mock.return_value = progress
+    challenge_mock.return_value = challenge
+    total_score_mock.return_value = 0
+
+    response = update_progress(data, session, current_user)
+
+    session.commit.assert_called_once()
+    session.refresh.assert_called_with(progress)
+
+    assert response.current_progress == 70
+    assert current_user.xp == 0
+
+def test_reward_all_participants():
+    session = Mock()
+
+    user1 = Mock()
+    user1.id = 1
+    user1.xp = 0
+
+    user2 = Mock()
+    user2.id = 2
+    user2.xp = 50
+
+    users = [user1, user2]
+
+    progress1 = Mock()
+    progress1.user_id = 1
+    progress1.xp_granted = False
+    progress1.completed = False
+    progress1.current_progress = 0
+
+    progress2 = Mock()
+    progress2.user_id = 2
+    progress2.xp_granted = False
+    progress2.completed = False
+    progress2.current_progress = 0
+
+    progressions = [progress1, progress2]
+
+    challenge = Mock()
+    challenge.id = 10
+    challenge.xp_reward = 100
+    challenge.goal = 5
+
+    session.exec.return_value.all.side_effect = [
+        progressions,  
+        users        
+    ]
+
+    reward_all_participants(challenge, session)
+
+    assert user1.xp == 100
+    assert user2.xp == 150
+
+    assert progress1.completed is True
+    assert progress2.completed is True
+
+    assert progress1.xp_granted is True
+    assert progress2.xp_granted is True
+
+    assert progress1.current_progress == challenge.goal
+    assert progress2.current_progress == challenge.goal
+
+    session.commit.assert_called_once()

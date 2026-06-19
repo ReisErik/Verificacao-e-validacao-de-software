@@ -92,6 +92,7 @@ def create_challenge(data: CreateChallengeSchema ,session, current_user):
         start_date = data.start_date,
         end_date = data.end_date,
         category = data.category,
+        mode_challenge = data.mode_challenge
     )
 
     session.add(challenge)

@@ -6,9 +6,10 @@ from app.utils.ensure_utc import ensure_utc
 from sqlmodel import select
 from fastapi import HTTPException
 from datetime import datetime, UTC
-from app.schemas.challenge_schema import ChallengeType
+from app.schemas.challenge_schema import ChallengeType, ChallengeMode
 from app.services.user_services import update_streak
 from app.services.challenge_log_service import create_log, get_total_score_today
+from app.models.user import User
 
 def get_progress_or_404(challenge_id: int, session, current_user):
     validateAuth(current_user)
@@ -27,6 +28,46 @@ def get_progress_or_404(challenge_id: int, session, current_user):
         )
     
     return progress
+
+def reward_user(current_user, challenge, session):
+    validateAuth(current_user)
+    current_user.xp += challenge.xp_reward
+
+    session.add(current_user)
+
+    return current_user
+
+
+def reward_all_participants(challenge, session):
+    progressions = session.exec(
+        select(ChallengeProgress).where(
+            ChallengeProgress.challenge_id == challenge.id
+        )
+    ).all()
+
+    user_ids = [p.user_id for p in progressions]
+
+    users = session.exec(
+        select(User).where(User.id.in_(user_ids))
+    ).all()
+
+    progress_map = {
+        progress.user_id: progress
+        for progress in progressions
+    }
+
+    for user in users:
+        progress = progress_map[user.id]
+
+        if progress.xp_granted:
+            continue
+
+        user.xp += challenge.xp_reward
+        progress.xp_granted = True
+        progress.completed = True
+        progress.current_progress = challenge.goal
+
+    session.commit()
 
 def all_participants_completed(challenge_id: int, session) -> bool:
     pending = session.exec(
@@ -116,11 +157,15 @@ def update_progress(data: UpdateProgressSchema, session, current_user):
         update_streak(current_user.id, datetime.now(UTC), session)
 
     if progress.current_progress >= challenge.goal:
-        progress.completed = True
-        progress.current_progress = challenge.goal
+        if challenge.mode_challenge == ChallengeMode.SOLO and not progress.xp_granted:
+            reward_user(current_user, challenge, session)
+            progress.completed = True
+            progress.xp_granted = True
+            progress.current_progress = challenge.goal
 
-        current_user.xp += challenge.xp_reward
-        session.add(current_user)
+        elif challenge.mode_challenge == ChallengeMode.GROUP and not progress.xp_granted:
+            if all_participants_completed(challenge.id, session):
+                reward_all_participants(challenge.id, session)
 
     create_log(
         challenge_id=data.challenge_id,

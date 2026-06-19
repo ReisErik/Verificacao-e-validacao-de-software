@@ -22,6 +22,7 @@ class CreateChallengeSchema(BaseModel):
     visibility: bool
     type_challenge: ChallengeType
     category: str
+    mode_challenge: ChallengeMode
 
 class ChallengeResponseSchema(BaseModel):
     id: int
@@ -35,6 +36,7 @@ class ChallengeResponseSchema(BaseModel):
     visibility: bool
     type_challenge: ChallengeType
     category: str
+    mode_challenge: ChallengeMode
 
 class JoinChallengeSchema(BaseModel):
     challenge_id: int

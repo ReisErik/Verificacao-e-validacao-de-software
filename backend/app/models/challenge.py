@@ -1,6 +1,6 @@
 from sqlmodel import SQLModel, Field
 from datetime import datetime
-from app.schemas.challenge_schema import ChallengeType
+from app.schemas.challenge_schema import ChallengeType, ChallengeMode
 
 class Challenge(SQLModel, table=True):
     id: int | None = Field(default=None, primary_key=True)
@@ -14,5 +14,6 @@ class Challenge(SQLModel, table=True):
     visibility: bool = False
     category: str
     type_challenge: ChallengeType
+    mode_challenge: ChallengeMode
     created_at: datetime = Field(default_factory=datetime.now)
     updated_at: datetime = Field(default_factory=datetime.now)

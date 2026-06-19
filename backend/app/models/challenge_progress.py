@@ -6,5 +6,6 @@ class ChallengeProgress(SQLModel, table=True):
     challenge_id: int = Field(foreign_key="challenge.id", ondelete="CASCADE")
     user_id: int = Field(foreign_key="user.id")
     current_progress: float = 0
+    xp_granted: bool = False
     completed: bool = False
     last_update: date | None = None
