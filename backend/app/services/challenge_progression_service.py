@@ -8,7 +8,7 @@ from fastapi import HTTPException
 from datetime import datetime, UTC
 from app.schemas.challenge_schema import ChallengeType
 from app.services.user_services import update_streak
-from app.services.challenge_log_service import create_log
+from app.services.challenge_log_service import create_log, get_total_score_today
 
 def get_progress_or_404(challenge_id: int, session, current_user):
     validateAuth(current_user)
@@ -28,6 +28,18 @@ def get_progress_or_404(challenge_id: int, session, current_user):
     
     return progress
 
+def all_participants_completed(challenge_id: int, session) -> bool:
+    pending = session.exec(
+        select(ChallengeProgress)
+        .where(
+            ChallengeProgress.challenge_id == challenge_id,
+            ChallengeProgress.completed == False,
+        )
+        .limit(1)
+    ).first()
+
+    return pending is None
+
 def update_progress(data: UpdateProgressSchema, session, current_user):
     validateAuth(current_user)
 
@@ -36,6 +48,13 @@ def update_progress(data: UpdateProgressSchema, session, current_user):
 
     now = datetime.now(UTC)
     today = now.date()
+
+    FACTOR_MAX = {
+        ChallengeType.TIME: 1.5,
+        ChallengeType.AMOUNT: 2.0
+    }
+
+    duration_days = max((challenge.end_date - challenge.start_date).days + 1,1)
 
     if ensure_utc(challenge.start_date) > now:
         raise HTTPException(
@@ -78,6 +97,18 @@ def update_progress(data: UpdateProgressSchema, session, current_user):
                 status_code=400,
                 detail="Score precisa ser positivo",
             )
+
+        score_per_day = challenge.goal / duration_days
+        score_max_per_day = score_per_day * FACTOR_MAX[challenge.type_challenge]
+
+        score_today = get_total_score_today(data.challenge_id, current_user, session)
+        
+        if score_today + score > score_max_per_day:
+            raise HTTPException(
+                status_code=400,
+                detail="Pontuação inserida ultrapassa o limite diário"
+            )
+
 
         progress.current_progress += score
 

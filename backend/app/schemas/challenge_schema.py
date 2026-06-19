@@ -8,6 +8,11 @@ class ChallengeType(Enum):
     TIME = "TIME"
     AMOUNT = "AMOUNT"
 
+class ChallengeMode(Enum):
+    SOLO = "SOLO"
+    GROUP = "GROUP"
+    COMPETITION = "COMPETITION"
+
 class CreateChallengeSchema(BaseModel):
     name: str
     description: str
