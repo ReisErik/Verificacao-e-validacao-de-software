@@ -25,6 +25,10 @@ class CreateChallengeSchema(BaseModel):
     mode_challenge: ChallengeMode
 
 class ChallengeResponseSchema(BaseModel):
+    model_config = {
+        "from_attributes": True
+    }
+    
     id: int
     owner: int
     name: str
@@ -48,6 +52,10 @@ class UpdateProgressSchema(BaseModel):
     score: float
 
 class ProgressResponseSchema(BaseModel):
+    model_config = {
+        "from_attributes": True
+    }
+    
     challenge_id: int
     current_progress: float
     completed: bool

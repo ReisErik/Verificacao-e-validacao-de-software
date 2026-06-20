@@ -136,7 +136,7 @@ def reward_all_participants_competition(challenge, session):
             elif progression.current_progress >= challenge.goal / 2:
                 multiplier = 0.50
             else:
-                multiplier = 0.20
+                multiplier = 0.00
 
         gained_xp = int(challenge.xp_reward * multiplier)
 
