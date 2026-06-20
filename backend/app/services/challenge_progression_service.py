@@ -37,7 +37,6 @@ def reward_user(current_user, challenge, session):
 
     return current_user
 
-
 def reward_all_participants(challenge, session):
     progressions = session.exec(
         select(ChallengeProgress).where(
@@ -78,6 +77,73 @@ def all_participants_completed(challenge, session) -> bool:
     ).first()
 
     return pending is None
+
+def first_participant_completed(challenge, session) -> bool:
+    completed = session.exec(
+        select(ChallengeProgress)
+        .where(
+            ChallengeProgress.challenge_id == challenge.id,
+            ChallengeProgress.completed == True,
+        )
+    ).all()
+
+    return len(completed) == 1
+
+def reward_all_participants_competition(challenge, session):
+    progressions = session.exec(
+        select(ChallengeProgress).where(
+            ChallengeProgress.challenge_id == challenge.id
+        )
+    ).all()
+
+    progressions = sorted(
+        progressions,
+        key = lambda p:(
+            -p.current_progress,
+            p.updated_at
+        )
+    )
+
+    if any(p.xp_granted for p in progressions):
+        return
+
+    user_ids = [p.user_id for p in progressions]
+
+    users = session.exec(
+        select(User).where(User.id.in_(user_ids))
+    ).all()
+
+    users_map = {user.id: user for user in users}
+
+    for position, progression in enumerate(progressions, start=1):
+        user = users_map.get(progression.user_id)
+
+        if user is None or progression.xp_granted:
+            continue
+
+        if position == 1:
+            multiplier = 1.20
+        elif position == 2:
+            multiplier = 1.10
+        elif position == 3:
+            multiplier = 1.00
+        elif position in (4, 5):
+            multiplier = 0.80
+        else:
+
+            if progression.current_progress == 0:
+                multiplier = 0.00
+            elif progression.current_progress >= challenge.goal / 2:
+                multiplier = 0.50
+            else:
+                multiplier = 0.20
+
+        gained_xp = int(challenge.xp_reward * multiplier)
+
+        user.xp += gained_xp
+        progression.xp_granted = True
+
+    session.commit()
 
 def update_progress(data: UpdateProgressSchema, session, current_user):
     validateAuth(current_user)
@@ -167,6 +233,10 @@ def update_progress(data: UpdateProgressSchema, session, current_user):
         elif challenge.mode_challenge == ChallengeMode.GROUP and not progress.xp_granted:
             if all_participants_completed(challenge, session):
                 reward_all_participants(challenge, session)
+        
+        elif challenge.mode_challenge == ChallengeMode.COMPETITION and not progress.xp_granted:
+            if first_participant_completed(challenge, session):
+                reward_all_participants_competition(challenge, session)
 
     create_log(
         challenge_id=data.challenge_id,
