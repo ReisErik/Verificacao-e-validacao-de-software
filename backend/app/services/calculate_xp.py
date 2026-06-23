@@ -1,6 +1,6 @@
 from datetime import datetime
 from app.schemas.challenge_schema import ChallengeType
-
+from app.utils.calculate_duration_days import calculate_duration_days
 
 def calculate_xp(
     goal: float,
@@ -10,7 +10,7 @@ def calculate_xp(
     category: str | None = None,
 ) -> int:
 
-    duration_days = max((end_date - start_date).days, 1)
+    duration_days = calculate_duration_days(start_date, end_date)
 
     base_xp = 50
 

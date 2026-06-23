@@ -182,6 +182,180 @@ def test_update_progress_amount_success(progress_mock, challenge_mock, update_st
     session.add.assert_any_call(progress)
     session.add.assert_any_call(current_user)
 
+@patch("app.services.challenge_progression_service.reward_all_participants")
+@patch("app.services.challenge_progression_service.all_participants_completed")
+@patch("app.services.challenge_progression_service.get_total_score_today")
+@patch("app.services.challenge_progression_service.update_streak")
+@patch("app.services.challenge_progression_service.create_log")
+@patch("app.services.challenge_progression_service.get_challenge_or_404")
+@patch("app.services.challenge_progression_service.get_progress_or_404")
+def test_update_progress_group_rewards_all(progress_mock, challenge_mock, update_streak_mock, create_log_mock, total_score_mock, all_completed_mock, reward_all_mock):
+    session = Mock()
+
+    current_user = Mock()
+    current_user.xp = 0
+
+    progress = Mock()
+    progress.current_progress = 9
+    progress.completed = False
+    progress.xp_granted = False
+
+    challenge = Mock()
+    challenge.id = 1
+    challenge.goal = 10
+    challenge.xp_reward = 100
+    challenge.start_date = datetime.now(UTC) - timedelta(days=1)
+    challenge.end_date = datetime.now(UTC) + timedelta(days=1)
+    challenge.type_challenge = ChallengeType.AMOUNT
+    challenge.mode_challenge = ChallengeMode.GROUP
+
+    create_log_mock.return_value = 1
+    update_streak_mock.return_value = 1
+    progress_mock.return_value = progress
+    challenge_mock.return_value = challenge
+    total_score_mock.return_value = 0
+    all_completed_mock.return_value = True
+
+    data = UpdateProgressSchema(
+        challenge_id=1,
+        score=1,
+    )
+
+    update_progress(data, session, current_user)
+
+    all_completed_mock.assert_called_once_with(challenge, session)
+    reward_all_mock.assert_called_once_with(challenge, session)
+
+@patch("app.services.challenge_progression_service.reward_all_participants_competition")
+@patch("app.services.challenge_progression_service.first_participant_completed")
+@patch("app.services.challenge_progression_service.get_total_score_today")
+@patch("app.services.challenge_progression_service.update_streak")
+@patch("app.services.challenge_progression_service.create_log")
+@patch("app.services.challenge_progression_service.get_challenge_or_404")
+@patch("app.services.challenge_progression_service.get_progress_or_404")
+def test_update_progress_competition_rewards_all(progress_mock, challenge_mock, update_streak_mock, create_log_mock, total_score_mock, first_completed_mock, reward_competition_mock):
+    session = Mock()
+
+    current_user = Mock()
+    current_user.xp = 0
+
+    progress = Mock()
+    progress.current_progress = 9
+    progress.completed = False
+    progress.xp_granted = False
+
+    challenge = Mock()
+    challenge.id = 1
+    challenge.goal = 10
+    challenge.xp_reward = 100
+    challenge.start_date = datetime.now(UTC) - timedelta(days=1)
+    challenge.end_date = datetime.now(UTC) + timedelta(days=1)
+    challenge.type_challenge = ChallengeType.AMOUNT
+    challenge.mode_challenge = ChallengeMode.COMPETITION
+
+    create_log_mock.return_value = 1
+    update_streak_mock.return_value = 1
+    progress_mock.return_value = progress
+    challenge_mock.return_value = challenge
+    total_score_mock.return_value = 0
+    first_completed_mock.return_value = True
+
+    data = UpdateProgressSchema(
+        challenge_id=1,
+        score=1,
+    )
+
+    update_progress(data, session, current_user)
+
+    first_completed_mock.assert_called_once_with(challenge, session)
+    reward_competition_mock.assert_called_once_with(challenge, session)
+
+@patch("app.services.challenge_progression_service.reward_all_participants")
+@patch("app.services.challenge_progression_service.all_participants_completed")
+@patch("app.services.challenge_progression_service.create_log")
+@patch("app.services.challenge_progression_service.update_streak")
+@patch("app.services.challenge_progression_service.get_total_score_today")
+@patch("app.services.challenge_progression_service.get_challenge_or_404")
+@patch("app.services.challenge_progression_service.get_progress_or_404")
+def test_update_progress_group_not_all_completed(progress_mock, challenge_mock, update_streak_mock, create_log_mock, total_score_mock, all_completed_mock, reward_all_mock):
+    session = Mock()
+
+    current_user = Mock()
+    current_user.xp = 0
+
+    progress = Mock()
+    progress.current_progress = 9
+    progress.completed = False
+    progress.xp_granted = False
+
+    challenge = Mock()
+    challenge.id = 1
+    challenge.goal = 10
+    challenge.start_date = datetime.now(UTC) - timedelta(days=1)
+    challenge.end_date = datetime.now(UTC) + timedelta(days=1)
+    challenge.type_challenge = ChallengeType.AMOUNT
+    challenge.mode_challenge = ChallengeMode.GROUP
+
+    create_log_mock.return_value = 1
+    update_streak_mock.return_value = 1
+    progress_mock.return_value = progress
+    challenge_mock.return_value = challenge
+    total_score_mock.return_value = 0
+    all_completed_mock.return_value = False
+
+    data = UpdateProgressSchema(
+        challenge_id=1,
+        score=1,
+    )
+
+    update_progress(data, session, current_user)
+
+    all_completed_mock.assert_called_once_with(challenge, session)
+    reward_all_mock.assert_not_called()
+
+@patch("app.services.challenge_progression_service.reward_all_participants_competition")
+@patch("app.services.challenge_progression_service.first_participant_completed")
+@patch("app.services.challenge_progression_service.create_log")
+@patch("app.services.challenge_progression_service.update_streak")
+@patch("app.services.challenge_progression_service.get_total_score_today")
+@patch("app.services.challenge_progression_service.get_challenge_or_404")
+@patch("app.services.challenge_progression_service.get_progress_or_404")
+def test_update_progress_competition_no_first_completed(progress_mock, challenge_mock, update_streak_mock, create_log_mock, total_score_mock, first_completed_mock, reward_competition_mock):
+    session = Mock()
+
+    current_user = Mock()
+    current_user.xp = 0
+
+    progress = Mock()
+    progress.current_progress = 9
+    progress.completed = False
+    progress.xp_granted = False
+
+    challenge = Mock()
+    challenge.id = 1
+    challenge.goal = 10
+    challenge.start_date = datetime.now(UTC) - timedelta(days=1)
+    challenge.end_date = datetime.now(UTC) + timedelta(days=1)
+    challenge.type_challenge = ChallengeType.AMOUNT
+    challenge.mode_challenge = ChallengeMode.COMPETITION
+
+    create_log_mock.return_value = 1
+    update_streak_mock.return_value = 1
+    progress_mock.return_value = progress
+    challenge_mock.return_value = challenge
+    total_score_mock.return_value = 0
+    first_completed_mock.return_value = False
+
+    data = UpdateProgressSchema(
+        challenge_id=1,
+        score=1,
+    )
+
+    update_progress(data, session, current_user)
+
+    first_completed_mock.assert_called_once_with(challenge, session)
+    reward_competition_mock.assert_not_called()
+
 @patch("app.services.challenge_progression_service.get_total_score_today")
 @patch("app.services.challenge_progression_service.create_log")
 @patch("app.services.challenge_progression_service.update_streak")
@@ -531,6 +705,54 @@ def test_update_progress_streak_partial_progress(progress_mock, challenge_mock, 
 
     assert e.value.status_code == 400
     assert e.value.detail == "Você já registrou progresso hoje."
+
+@patch("app.services.challenge_progression_service.create_log")
+@patch("app.services.challenge_progression_service.update_streak")
+@patch("app.services.challenge_progression_service.get_challenge_or_404")
+@patch("app.services.challenge_progression_service.get_progress_or_404")
+def test_update_progress_streak_last_update_more_1_day(progress_mock, challenge_mock, update_streak_mock, create_log_mock):
+    """Sucesso: Atualizou progresso do desafio de Streak, finalizou e adicionou XP"""
+    session = Mock()
+
+    current_user = Mock()
+    current_user.xp = 0
+
+    progress = Mock()
+    progress.challenge_id = 1
+    progress.current_progress = 1
+    progress.completed = False
+    progress.last_update = (datetime.now(UTC) - timedelta(days=1)).date()
+    progress.xp_granted = False
+    progress.last_update = date.today() - timedelta(days=2)
+
+    challenge = Mock()
+    challenge.id = 1
+    challenge.xp_reward = 100
+    challenge.goal = 2
+    challenge.start_date = datetime.now(UTC) - timedelta(days=1)
+    challenge.end_date = datetime.now(UTC) + timedelta(days=1)
+    challenge.type_challenge = ChallengeType.STREAK
+    challenge.mode_challenge = ChallengeMode.SOLO
+
+    data = UpdateProgressSchema(
+        challenge_id=1,
+        score=1
+    )
+
+    create_log_mock.return_value = 1
+    update_streak_mock.return_value = 1
+    progress_mock.return_value = progress
+    challenge_mock.return_value = challenge
+
+    response = update_progress(data, session, current_user)
+
+    session.commit.assert_called_once()
+    session.refresh.assert_called_with(progress)
+
+    assert response.current_progress == 1
+
+    session.add.assert_any_call(progress)
+
 
 @patch("app.services.challenge_progression_service.get_challenge_or_404")
 @patch("app.services.challenge_progression_service.get_progress_or_404")

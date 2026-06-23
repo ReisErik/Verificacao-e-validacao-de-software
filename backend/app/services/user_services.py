@@ -90,39 +90,26 @@ def disable_user(id: int, session):
     session.refresh(user)
     return user
 
-def calculate_xp(id: int, xp: int, session):
-    user = get_user_or_404(id, session)
-
-    user.xp += xp
-    session.add(user)
-    session.commit()
-    session.refresh(user)
-    return user
-
-def update_streak(id: int, current_date : datetime, session):
-    user = get_user_or_404(id, session)
-
+def update_streak(current_user, current_date : datetime, session):
     today = current_date.date()
 
-    if user.last_workout:
-        last_day = user.last_workout.date()
+    if current_user.last_workout:
+        last_day = current_user.last_workout.date()
 
         if last_day == today:
-            return user
+            return 
 
         yesterday = today - timedelta(days=1)
 
         if last_day == yesterday:
-            user.streak += 1
+            current_user.streak += 1
         else:
-            user.streak = 1
+            current_user.streak = 1
     else:
-        user.streak = 1
+        current_user.streak = 1
     
-    if user.streak > user.best_streak:
-        user.best_streak = user.streak
+    if current_user.streak > current_user.best_streak:
+        current_user.best_streak = current_user.streak
 
-    session.add(user)
     session.commit()
-    session.refresh(user)
-    return user
+    return 

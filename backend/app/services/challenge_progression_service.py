@@ -218,7 +218,7 @@ def update_progress(data: UpdateProgressSchema, session, current_user):
         progress.current_progress += score
 
     if not progress.completed:
-        update_streak(current_user.id, datetime.now(UTC), session)
+        update_streak(current_user, datetime.now(UTC), session)
 
     if progress.current_progress >= challenge.goal:
         progress.completed = True
