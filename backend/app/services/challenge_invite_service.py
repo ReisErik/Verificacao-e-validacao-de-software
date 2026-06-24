@@ -4,6 +4,7 @@ from app.services.user_services import get_user_or_404
 from app.services.challenge_service import get_challenge_or_404
 from app.validators.validate_auth import validateAuth
 from app.models.challenge_invite import ChallengeInvite
+from app.models.challenge_participant import ChallengeParticipant
 
 def invite_exists(challenge_id: int, user_invitated_id: int, session, current_user):
     validateAuth(current_user)
@@ -20,13 +21,46 @@ def invite_exists(challenge_id: int, user_invitated_id: int, session, current_us
             status_code=400,
             detail="Convite já enviado"
         )
-    
+
+def ensure_challenge_has_slot(challenge, session):
+    participants = session.exec(
+        select(ChallengeParticipant).where(
+            ChallengeParticipant.challenge_id == challenge.id
+        )
+    ).all()
+
+    if len(participants) >= challenge.max_participants:
+        raise HTTPException(
+            status_code=400,
+            detail="Desafio atingiu o limite de participantes",
+        )
+
+def ensure_not_participant(participant_id: int, challenge_id: int, session, current_user):
+    validateAuth(current_user)
+
+    participant = session.exec(
+        select(ChallengeParticipant).where(
+            ChallengeParticipant.user_id == participant_id,
+            ChallengeParticipant.challenge_id == challenge_id,
+        )
+    ).first()
+
+    if participant:
+        raise HTTPException(
+            status_code=400,
+            detail="Usuario já está participando do desafio",
+        )
+
 def invite_challenge(challenge_id: int, user_invitated_id: int, session, current_user):
     validateAuth(current_user)
 
     invite_exists(challenge_id, user_invitated_id ,session, current_user)
+
     challenge = get_challenge_or_404(challenge_id, session, current_user)
     get_user_or_404(user_invitated_id, session)
+
+    ensure_challenge_has_slot(challenge, session)
+    ensure_not_participant(user_invitated_id, challenge.id, session, current_user)
 
     if user_invitated_id == current_user.id:
         raise HTTPException(

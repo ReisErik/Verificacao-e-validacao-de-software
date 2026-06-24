@@ -15,7 +15,8 @@ def test_create_challenge(client, users, session):
         "visibility": True,
         "category": "Estudo",
         "type_challenge": "STREAK",
-        "mode_challenge": "SOLO"
+        "mode_challenge": "SOLO", 
+        "max_participants":5
     }
 
     response = client.post("/challenge/create", json=payload)
@@ -40,7 +41,8 @@ def test_get_all_challenges(client, users, session):
         "visibility": True,
         "category": "Estudo",
         "type_challenge": "STREAK",
-        "mode_challenge": "SOLO"
+        "mode_challenge": "SOLO", 
+        "max_participants":5
     }
 
     client.post("/challenge/create", json=payload)
@@ -67,7 +69,8 @@ def test_get_challenge_by_id(client, users, session):
         "visibility": True,
         "category": "Estudo",
         "type_challenge": "STREAK",
-        "mode_challenge": "SOLO"
+        "mode_challenge": "SOLO", 
+        "max_participants":5
     }
 
     res = client.post("/challenge/create", json=payload)
@@ -102,7 +105,8 @@ def test_multi_user_challenges(client, users,session):
         "visibility": True,
         "category": "Estudo",
         "type_challenge": "STREAK",
-        "mode_challenge": "SOLO"
+        "mode_challenge": "SOLO", 
+        "max_participants": 5
     }
 
     res = client.post("/challenge/create", json=payload)

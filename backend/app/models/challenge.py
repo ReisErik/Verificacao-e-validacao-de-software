@@ -15,5 +15,6 @@ class Challenge(SQLModel, table=True):
     category: str
     type_challenge: ChallengeType
     mode_challenge: ChallengeMode
+    max_participants: int 
     created_at: datetime = Field(default_factory=datetime.now)
     updated_at: datetime = Field(default_factory=datetime.now)

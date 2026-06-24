@@ -1,4 +1,4 @@
-from app.services.challenge_invite_service import invite_exists, invite_challenge, get_invite_or_404, cancel_invite, get_all_invites_receives, get_all_invites_sends
+from app.services.challenge_invite_service import invite_exists, invite_challenge, get_invite_or_404, cancel_invite, get_all_invites_receives, get_all_invites_sends, ensure_not_participant, ensure_challenge_has_slot
 from unittest.mock import Mock, patch
 from fastapi import HTTPException
 import pytest
@@ -48,17 +48,21 @@ def test_get_invite_or_404_not_found():
 
     assert e.value.status_code == 404
 
+@patch("app.services.challenge_invite_service.ensure_not_participant")
+@patch("app.services.challenge_invite_service.ensure_challenge_has_slot")
 @patch("app.services.challenge_invite_service.invite_exists")
 @patch("app.services.challenge_invite_service.get_challenge_or_404")
 @patch("app.services.challenge_invite_service.get_user_or_404")
-def test_invite_challenge_success(mock_get_user, mock_get_challenge, mock_invite_exists):
+def test_invite_challenge_success(mock_get_user, mock_get_challenge, mock_invite_exists, mock_ensure_slot, mock_ensure_not_participant):
     """Caminho feliz: Dono convida um usuário válido que ainda não foi convidado"""
     session = Mock()
+
     current_user = Mock()
     current_user.id = 1  
 
     challenge_mock = Mock()
     challenge_mock.owner = 1  
+    challenge_mock.max_participants = 5
     mock_get_challenge.return_value = challenge_mock
     
     result = invite_challenge(challenge_id=10, user_invitated_id=2, session=session, current_user=current_user)
@@ -74,12 +78,15 @@ def test_invite_challenge_success(mock_get_user, mock_get_challenge, mock_invite
     assert result.receiver_id == 2
     assert result.challenge_id == 10
 
+@patch("app.services.challenge_invite_service.ensure_not_participant")
+@patch("app.services.challenge_invite_service.ensure_challenge_has_slot")
 @patch("app.services.challenge_invite_service.invite_exists")
 @patch("app.services.challenge_invite_service.get_challenge_or_404")
 @patch("app.services.challenge_invite_service.get_user_or_404")
-def test_invite_challenge_owner_inviting_himself(mock_get_user, mock_get_challenge, mock_invite_exists):
+def test_invite_challenge_owner_inviting_himself(mock_get_user, mock_get_challenge, mock_invite_exists, mock_ensure_slot, mock_ensure_not_participant,):
     """Erro: Dono tenta convidar a si mesmo"""
     session = Mock()
+
     current_user = Mock()
     current_user.id = 1
 
@@ -90,13 +97,15 @@ def test_invite_challenge_owner_inviting_himself(mock_get_user, mock_get_challen
     assert e.value.detail == "Dono não pode convidar a si mesmo"
     session.commit.assert_not_called()
 
-
+@patch("app.services.challenge_invite_service.ensure_not_participant")
+@patch("app.services.challenge_invite_service.ensure_challenge_has_slot")
 @patch("app.services.challenge_invite_service.invite_exists")
 @patch("app.services.challenge_invite_service.get_challenge_or_404")
 @patch("app.services.challenge_invite_service.get_user_or_404")
-def test_invite_challenge_not_owner(mock_get_user, mock_get_challenge, mock_invite_exists):
+def test_invite_challenge_not_owner(mock_get_user, mock_get_challenge, mock_invite_exists, mock_ensure_slot, mock_ensure_not_participant,):
     """Erro: Usuário que não é o dono tenta convidar alguém"""
     session = Mock()
+
     current_user = Mock()
     current_user.id = 2  
 
@@ -116,6 +125,7 @@ def test_invite_challenge_not_owner(mock_get_user, mock_get_challenge, mock_invi
 @patch("app.services.challenge_invite_service.get_invite_or_404")
 def test_cancel_invite_success(mock_get_invite, mock_get_user):
     session = Mock()
+
     current_user = Mock()
     current_user.id = 1
 
@@ -246,3 +256,45 @@ def test_get_all_invites_receives_empty():
 
     assert e.value.status_code == 404
     assert e.value.detail == "Usuario não recebeu convites"
+
+def test_ensure_not_participant_true():
+    session = Mock()
+    session.exec.return_value.first.return_value = None
+
+    current_user = Mock()
+
+    ensure_not_participant(1, 1, session, current_user)
+
+def test_ensure_not_participant_false():
+    session = Mock()
+    session.exec.return_value.first.return_value = True
+
+    current_user = Mock()
+
+    with pytest.raises(HTTPException) as e:
+        ensure_not_participant(1, 1, session, current_user)
+    
+    assert e.value.status_code == 400
+    assert e.value.detail == "Usuario já está participando do desafio"
+
+def test_ensure_has_slot_true():
+    session = Mock()
+    session.exec.return_value.all.return_value = []
+
+    challenge = Mock()
+    challenge.max_participants = 5
+
+    ensure_challenge_has_slot(challenge, session)
+
+def test_ensure_has_slot_false():
+    session = Mock()
+    session.exec.return_value.all.return_value = ["a" for _ in range(5)]
+
+    challenge = Mock()
+    challenge.max_participants = 5
+
+    with pytest.raises(HTTPException) as e:
+        ensure_challenge_has_slot(challenge, session)
+    
+    assert e.value.status_code == 400
+    assert e.value.detail == "Desafio atingiu o limite de participantes"

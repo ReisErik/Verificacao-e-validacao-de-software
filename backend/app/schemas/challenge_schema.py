@@ -20,6 +20,7 @@ class CreateChallengeSchema(BaseModel):
     end_date: datetime
     goal: float
     visibility: bool
+    max_participants: int
     type_challenge: ChallengeType
     category: str
     mode_challenge: ChallengeMode
@@ -37,6 +38,7 @@ class ChallengeResponseSchema(BaseModel):
     start_date: datetime
     end_date: datetime
     goal: float
+    max_participants: int
     visibility: bool
     type_challenge: ChallengeType
     category: str

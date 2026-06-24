@@ -3,8 +3,9 @@ from sqlmodel import select
 from app.models.challenge_participant import ChallengeParticipant
 from fastapi import HTTPException
 from app.services.challenge_service import get_challenge_or_404
-from app.services.challenge_invite_service import get_invite_or_404
+from app.services.challenge_invite_service import get_invite_or_404, ensure_challenge_has_slot
 from app.services.challenge_progression_service import get_progress_or_404
+from app.services.challenge_service import ensure_active_challenge_limit
 from app.models.challenge_progress import ChallengeProgress
 from datetime import datetime, UTC, date
 from app.schemas.challenge_schema import JoinChallengeSchema
@@ -26,13 +27,29 @@ def ensure_not_participant(participant_id:int, challenge_id: int, session, curre
             detail="Usuario já está participando do desafio"
         )
 
+def ensure_participants_limit(challenge, session):
+    participants = session.exec(
+    select(ChallengeParticipant).where(
+        ChallengeParticipant.challenge_id == challenge.id
+        )
+    ).all()
+
+    if len(participants) >= challenge.max_participants:
+        raise HTTPException(
+            status_code=400,
+            detail="Desafio atingiu o limite de participantes",
+        )
+
 def join_or_refuse_challenge(data: JoinChallengeSchema , session, current_user):
     validateAuth(current_user)
 
     answer = data.answer
     challenge = get_challenge_or_404(data.challenge_id, session, current_user)
     invite = get_invite_or_404(data.invite_id, session, current_user)
+
     ensure_not_participant(current_user.id, challenge.id, session, current_user)
+    ensure_active_challenge_limit(current_user, session)
+    ensure_participants_limit(challenge, session)
 
     if (date.today() - invite.created_at).days > 7:
         invite.answer = False

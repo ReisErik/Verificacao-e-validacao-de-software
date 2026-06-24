@@ -18,7 +18,8 @@ def test_get_progress(client, users, session):
         "visibility": True,
         "category": "fitness",
         "type_challenge": "STREAK",
-        "mode_challenge": "SOLO"
+        "mode_challenge": "SOLO",
+        "max_participants":5
     }
 
     res = client.post("/challenge/create", json=payload)
@@ -58,7 +59,8 @@ def test_update_progress_streak(client, users, session):
         "visibility": True,
         "category": "fitness",
         "type_challenge": "STREAK",
-        "mode_challenge": "SOLO"
+        "mode_challenge": "SOLO", 
+        "max_participants":5
     }
 
     res = client.post("/challenge/create", json=payload)
@@ -93,7 +95,8 @@ def test_update_progress_score(client, users, session):
         "visibility": True,
         "category": "fitness",
         "type_challenge": "AMOUNT",
-        "mode_challenge": "SOLO"
+        "mode_challenge": "SOLO", 
+        "max_participants":5
     }
 
     res = client.post("/challenge/create", json=payload)
@@ -128,7 +131,8 @@ def test_update_progress_invalid_score(client, users, session):
         "visibility": True,
         "category": "fitness",
         "type_challenge": "AMOUNT",
-        "mode_challenge": "SOLO"
+        "mode_challenge": "SOLO", 
+        "max_participants":5
     }
 
     res = client.post("/challenge/create", json=payload)
@@ -145,19 +149,6 @@ def test_update_progress_invalid_score(client, users, session):
     assert response.json()["detail"] == "Score precisa ser positivo"
 
     app.dependency_overrides.clear()
-
-def create_challenge_payload(start, end):
-    return {
-        "name": "Finish fast",
-        "description": "test",
-        "start_date": start.isoformat(),
-        "end_date": end.isoformat(),
-        "goal": 20,
-        "visibility": True,
-        "category": "fitness",
-        "type_challenge": "AMOUNT",
-        "mode_challenge": "SOLO"
-    }
 
 def test_completion_solo_reward(client, session, users):
     app.dependency_overrides[get_current_user] = override_get_current_user(
@@ -176,7 +167,8 @@ def test_completion_solo_reward(client, session, users):
         "visibility": True,
         "category": "fitness",
         "type_challenge": "STREAK",
-        "mode_challenge": "SOLO",
+        "mode_challenge": "SOLO", 
+        "max_participants":5,
     }
 
     res = client.post("/challenge/create", json=payload)

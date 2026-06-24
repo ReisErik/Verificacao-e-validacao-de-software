@@ -5,6 +5,7 @@ from datetime import datetime, timedelta, UTC
 
 from app.services.challenge_service import create_challenge, get_challenge_or_404
 from app.schemas.challenge_schema import CreateChallengeSchema
+from app.utils.constantes import *
 
 @pytest.fixture(autouse=True)
 def mock_auth():
@@ -13,6 +14,7 @@ def mock_auth():
 
 def test_create_challenge_streak_success():
     session = Mock()
+    session.exec.return_value.all.return_value = []
 
     current_user = Mock()
     current_user.id = 1
@@ -25,7 +27,8 @@ def test_create_challenge_streak_success():
         goal=5,
         visibility=False,
         type_challenge="STREAK",
-        category="Estudos",
+        category="Estudos", 
+        max_participants=5,
         mode_challenge="SOLO"
     )
 
@@ -40,6 +43,7 @@ def test_create_challenge_streak_success():
 
 def test_create_challenge_streak_limits():
     session = Mock()
+    session.exec.return_value.all.return_value = []
 
     current_user = Mock()
     current_user.id = 1
@@ -48,11 +52,12 @@ def test_create_challenge_streak_limits():
         name="Teste Limite Superior",
         description="Teste",
         start_date=datetime.now(UTC),
-        end_date=datetime.now(UTC) + timedelta(days=30),
+        end_date=datetime.now(UTC) + timedelta(days=29),
         goal=30,
         visibility=False,
         type_challenge="STREAK",
-        category="Estudos",
+        category="Estudos", 
+        max_participants=5,
         mode_challenge="SOLO"
     )
 
@@ -64,7 +69,8 @@ def test_create_challenge_streak_limits():
         goal=3,
         visibility=False,
         type_challenge="STREAK",
-        category="Estudos",
+        category="Estudos", 
+        max_participants=5,
         mode_challenge="SOLO"
     )
 
@@ -76,6 +82,7 @@ def test_create_challenge_streak_limits():
 
 def test_create_challenge_time_success():
     session = Mock()
+    session.exec.return_value.all.return_value = []
 
     current_user = Mock()
     current_user.id = 1
@@ -88,7 +95,8 @@ def test_create_challenge_time_success():
         goal=14,
         visibility=False,
         type_challenge="TIME",
-        category="Estudos",
+        category="Estudos", 
+        max_participants=5,
         mode_challenge="SOLO"
     )
 
@@ -103,6 +111,7 @@ def test_create_challenge_time_success():
 
 def test_create_challenge_time_limits():
     session = Mock()
+    session.exec.return_value.all.return_value = []
 
     current_user = Mock()
     current_user.id = 1
@@ -115,7 +124,8 @@ def test_create_challenge_time_limits():
         goal=21,
         visibility=False,
         type_challenge="TIME",
-        category="Estudos",
+        category="Estudos", 
+        max_participants=5,
         mode_challenge="SOLO"
     )
 
@@ -127,7 +137,8 @@ def test_create_challenge_time_limits():
         goal=1,
         visibility=False,
         type_challenge="TIME",
-        category="Estudos",
+        category="Estudos", 
+        max_participants=5,
         mode_challenge="SOLO"
     )
 
@@ -139,6 +150,7 @@ def test_create_challenge_time_limits():
 
 def test_create_challenge_amount_success():
     session = Mock()
+    session.exec.return_value.all.return_value = []
 
     current_user = Mock()
     current_user.id = 1
@@ -151,7 +163,8 @@ def test_create_challenge_amount_success():
         goal=100,
         visibility=False,
         type_challenge="AMOUNT",
-        category="Estudos",
+        category="Estudos", 
+        max_participants=5,
         mode_challenge="SOLO"
     )
 
@@ -166,6 +179,7 @@ def test_create_challenge_amount_success():
 
 def test_create_challenge_amount_limits():
     session = Mock()
+    session.exec.return_value.all.return_value = []
 
     current_user = Mock()
     current_user.id = 1
@@ -178,7 +192,8 @@ def test_create_challenge_amount_limits():
         goal=140,
         visibility=False,
         type_challenge="AMOUNT",
-        category="Estudos",
+        category="Estudos", 
+        max_participants=5,
         mode_challenge="SOLO"
     )
 
@@ -190,7 +205,8 @@ def test_create_challenge_amount_limits():
         goal=7,
         visibility=False,
         type_challenge="AMOUNT",
-        category="Estudos",
+        category="Estudos", 
+        max_participants=5,
         mode_challenge="SOLO"
     )
 
@@ -202,6 +218,7 @@ def test_create_challenge_amount_limits():
 
 def test_create_challenge_streak_more_duration():
     session = Mock()
+    session.exec.return_value.all.return_value = []
 
     current_user = Mock()
     current_user.id = 1
@@ -214,7 +231,8 @@ def test_create_challenge_streak_more_duration():
         goal=8,
         visibility=False,
         type_challenge="STREAK",
-        category="Estudos",
+        category="Estudos", 
+        max_participants=5,
         mode_challenge="SOLO"
     )
 
@@ -226,6 +244,7 @@ def test_create_challenge_streak_more_duration():
 
 def test_create_challenge_streak_more_30_days():
     session = Mock()
+    session.exec.return_value.all.return_value = []
 
     current_user = Mock()
     current_user.id = 1
@@ -238,7 +257,8 @@ def test_create_challenge_streak_more_30_days():
         goal=31,
         visibility=False,
         type_challenge="STREAK",
-        category="Estudos",
+        category="Estudos", 
+        max_participants=5,
         mode_challenge="SOLO"
     )
     
@@ -246,10 +266,11 @@ def test_create_challenge_streak_more_30_days():
         create_challenge(data, session, current_user)
     
     assert e.value.status_code == 400
-    assert e.value.detail == "Desafios STREAK podem ter no máximo 30 dias."
+    assert e.value.detail == "Duração do desafio invalida"
 
 def test_create_challenge_streak_less_3_days():
     session = Mock()
+    session.exec.return_value.all.return_value = []
 
     current_user = Mock()
     current_user.id = 1
@@ -258,11 +279,12 @@ def test_create_challenge_streak_less_3_days():
         name="Desafio teste",
         description="Teste",
         start_date=datetime.now(UTC),
-        end_date=datetime.now(UTC) + timedelta(days=7),
+        end_date=datetime.now(UTC) + timedelta(days=1),
         goal=2,
         visibility=False,
         type_challenge="STREAK",
-        category="Estudos",
+        category="Estudos", 
+        max_participants=5,
         mode_challenge="SOLO"
     )
     
@@ -270,10 +292,11 @@ def test_create_challenge_streak_less_3_days():
         create_challenge(data, session, current_user)
     
     assert e.value.status_code == 400
-    assert e.value.detail == "Desafios Streak precisam ter no mínimo 3 dias"
+    assert e.value.detail == "Duração do desafio invalida"
 
 def test_create_challenge_time_more_3_hours_days():
     session = Mock()
+    session.exec.return_value.all.return_value = []
 
     current_user = Mock()
     current_user.id = 1
@@ -286,7 +309,8 @@ def test_create_challenge_time_more_3_hours_days():
         goal=22,
         visibility=False,
         type_challenge="TIME",
-        category="Estudos",
+        category="Estudos", 
+        max_participants=5,
         mode_challenge="SOLO"
     )
 
@@ -298,6 +322,7 @@ def test_create_challenge_time_more_3_hours_days():
 
 def test_create_challenge_time_less_15_minutes_days():
     session = Mock()
+    session.exec.return_value.all.return_value = []
 
     current_user = Mock()
     current_user.id = 1
@@ -310,7 +335,8 @@ def test_create_challenge_time_less_15_minutes_days():
         goal=2,
         visibility=False,
         type_challenge="TIME",
-        category="Estudos",
+        category="Estudos", 
+        max_participants=5,
         mode_challenge="SOLO"
     )
 
@@ -322,6 +348,7 @@ def test_create_challenge_time_less_15_minutes_days():
 
 def test_create_challenge_amount_more_20_units_days():
     session = Mock()
+    session.exec.return_value.all.return_value = []
 
     current_user = Mock()
     current_user.id = 1
@@ -334,7 +361,8 @@ def test_create_challenge_amount_more_20_units_days():
         goal=141,
         visibility=False,
         type_challenge="AMOUNT",
-        category="Estudos",
+        category="Estudos", 
+        max_participants=5,
         mode_challenge="SOLO"
     )
 
@@ -346,6 +374,7 @@ def test_create_challenge_amount_more_20_units_days():
 
 def test_create_challenge_amount_less_1_unit_days():
     session = Mock()
+    session.exec.return_value.all.return_value = []
 
     current_user = Mock()
     current_user.id = 1
@@ -358,7 +387,8 @@ def test_create_challenge_amount_less_1_unit_days():
         goal=6,
         visibility=False,
         type_challenge="AMOUNT",
-        category="Estudos",
+        category="Estudos", 
+        max_participants=5,
         mode_challenge="SOLO"
     )
 
@@ -370,6 +400,7 @@ def test_create_challenge_amount_less_1_unit_days():
 
 def test_create_challenge_invalid_date():
     session = Mock()
+    session.exec.return_value.all.return_value = []
 
     current_user = Mock()
     current_user.id = 1
@@ -382,7 +413,8 @@ def test_create_challenge_invalid_date():
         goal=14,
         visibility=False,
         type_challenge="TIME",
-        category="Estudos",
+        category="Estudos", 
+        max_participants=5,
         mode_challenge="SOLO"
     )
 
@@ -420,3 +452,83 @@ def test_get_challenge_or_404_not_found():
     assert e.value.status_code == 404
     assert e.value.detail == "Desafio não encontrado"
 
+def test_create_challenge_limit_exceed():
+    session = Mock()
+
+    data = CreateChallengeSchema(
+        name="Desafio teste",
+        description="Teste",
+        start_date=datetime.now(UTC),
+        end_date=datetime.now(UTC) + timedelta(days=7),
+        goal=5,
+        visibility=False,
+        type_challenge="STREAK",
+        category="Estudos", 
+        max_participants=5,
+        mode_challenge="SOLO"
+    )
+
+    session.exec.return_value.all.return_value = [data for _ in range(MAX_ACTIVE_CHALLENGES)]
+
+    current_user = Mock()
+    current_user.id = 1
+
+    with pytest.raises(HTTPException) as e:
+        create_challenge(data, session, current_user)
+
+    assert e.value.status_code == 400
+    assert e.value.detail == "Limite de desafios ativos atingido"
+
+def test_create_challenge_false_minimum_participants():
+    session = Mock()
+
+    data = CreateChallengeSchema(
+        name="Desafio teste",
+        description="Teste",
+        start_date=datetime.now(UTC),
+        end_date=datetime.now(UTC) + timedelta(days=7),
+        goal=5,
+        visibility=False,
+        type_challenge="STREAK",
+        category="Estudos", 
+        max_participants=0,
+        mode_challenge="SOLO"
+    )
+
+    session.exec.return_value.all.return_value = []
+
+    current_user = Mock()
+    current_user.id = 1
+
+    with pytest.raises(HTTPException) as e:
+        create_challenge(data, session, current_user)
+
+    assert e.value.status_code == 400
+    assert e.value.detail == "Número máximo de participantes inválido"
+
+def test_create_challenge_false_max_participants():
+    session = Mock()
+
+    data = CreateChallengeSchema(
+        name="Desafio teste",
+        description="Teste",
+        start_date=datetime.now(UTC),
+        end_date=datetime.now(UTC) + timedelta(days=7),
+        goal=5,
+        visibility=False,
+        type_challenge="STREAK",
+        category="Estudos", 
+        max_participants=MAX_PARTICIPANTS + 1,
+        mode_challenge="SOLO"
+    )
+
+    session.exec.return_value.all.return_value = []
+
+    current_user = Mock()
+    current_user.id = 1
+
+    with pytest.raises(HTTPException) as e:
+        create_challenge(data, session, current_user)
+
+    assert e.value.status_code == 400
+    assert e.value.detail == "Número máximo de participantes inválido"

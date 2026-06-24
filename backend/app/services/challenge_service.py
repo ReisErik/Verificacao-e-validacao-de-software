@@ -11,6 +11,7 @@ from app.schemas.challenge_schema import CreateChallengeSchema, JoinChallengeSch
 from app.services.calculate_xp import calculate_xp
 from app.schemas.challenge_schema import ChallengeType
 from app.utils.calculate_duration_days import calculate_duration_days
+from app.utils.constantes import *
   
 def validate_goal(goal, duration_days, challenge_type):
     effort_per_day = goal / duration_days
@@ -20,17 +21,6 @@ def validate_goal(goal, duration_days, challenge_type):
             raise HTTPException(
                 status_code=400,
                 detail="Desafios STREAK não podem ter meta maior que a duração."
-            )
-
-        elif goal > 30:
-            raise HTTPException(
-                status_code=400,
-                detail="Desafios STREAK podem ter no máximo 30 dias."
-            )
-        elif goal < 3:
-            raise HTTPException(
-                status_code=400,
-                detail="Desafios Streak precisam ter no mínimo 3 dias"
             )
 
     elif challenge_type == ChallengeType.TIME:
@@ -57,8 +47,24 @@ def validate_goal(goal, duration_days, challenge_type):
                 detail="Desafios AMOUNT precisam ter pelo menos 1 unidade por dia."
             )
 
+def ensure_active_challenge_limit(current_user, session):
+    active = session.exec(
+        select(ChallengeProgress).where(
+            ChallengeProgress.user_id == current_user.id,
+            ChallengeProgress.completed == False,
+        )
+    ).all()
+
+    if len(active) >= MAX_ACTIVE_CHALLENGES:
+        raise HTTPException(
+            status_code=400,
+            detail="Limite de desafios ativos atingido",
+        )
+
 def create_challenge(data: CreateChallengeSchema ,session, current_user):
     validateAuth(current_user)
+
+    ensure_active_challenge_limit(current_user, session)
 
     if data.end_date <= data.start_date:
         raise HTTPException(
@@ -66,7 +72,19 @@ def create_challenge(data: CreateChallengeSchema ,session, current_user):
             detail="Data final deve ser maior que a inicial."
         )
 
+    if data.max_participants < 1 or data.max_participants > MAX_PARTICIPANTS:
+        raise HTTPException(
+            status_code=400,
+            detail="Número máximo de participantes inválido",
+        )
+
     duration_days = calculate_duration_days(data.start_date, data.end_date)
+
+    if duration_days < MIN_CHALLENGE_DAYS or duration_days > MAX_CHALLENGE_DAYS:
+        raise HTTPException(
+            status_code=400,
+            detail="Duração do desafio invalida"
+        )
 
     validate_goal(
         goal=data.goal,
@@ -93,7 +111,8 @@ def create_challenge(data: CreateChallengeSchema ,session, current_user):
         start_date = data.start_date,
         end_date = data.end_date,
         category = data.category,
-        mode_challenge = data.mode_challenge
+        mode_challenge = data.mode_challenge,
+        max_participants = data.max_participants
     )
 
     session.add(challenge)
