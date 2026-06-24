@@ -8,6 +8,7 @@ class ChallengeInvite(SQLModel, table=True):
     receiver_id: int | None = Field(default=None, foreign_key="user.id")
     challenge_id: int | None = Field(default=None, foreign_key="challenge.id")
     challenge_name: str
+    sent: bool = False
     answer: bool | None = Field(default=None)
     created_at: date = Field(default_factory = date.today)
 
