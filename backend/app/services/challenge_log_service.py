@@ -7,7 +7,7 @@ from datetime import datetime, date
 from sqlalchemy import func
 
 def create_log(challenge_id:int, user_id: int, score:float, session):
-    log = ChallengeLogSchema(
+    log = ChallengeLog(
         challenge_id=challenge_id,
         user_id=user_id,
         score=score,

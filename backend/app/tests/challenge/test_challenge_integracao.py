@@ -3,8 +3,8 @@ from app.core.auth import get_current_user
 from app.tests.conftest import override_get_current_user
 from app.main import app
 
-def test_create_challenge(client, users):
-    app.dependency_overrides[get_current_user] = override_get_current_user(users["user1"])
+def test_create_challenge(client, users, session):
+    app.dependency_overrides[get_current_user] = override_get_current_user(users["user1"].id, session)
 
     payload = {
         "name": "teste",
@@ -28,8 +28,8 @@ def test_create_challenge(client, users):
 
     app.dependency_overrides.clear()
 
-def test_get_all_challenges(client, users):
-    app.dependency_overrides[get_current_user] = override_get_current_user(users["user1"])
+def test_get_all_challenges(client, users, session):
+    app.dependency_overrides[get_current_user] = override_get_current_user(users["user1"].id, session)
 
     payload = {
         "name": "teste",
@@ -55,8 +55,8 @@ def test_get_all_challenges(client, users):
 
     app.dependency_overrides.clear()
 
-def test_get_challenge_by_id(client, users):
-    app.dependency_overrides[get_current_user] = override_get_current_user(users["user1"])
+def test_get_challenge_by_id(client, users, session):
+    app.dependency_overrides[get_current_user] = override_get_current_user(users["user1"].id, session)
 
     payload = {
         "name": "Find Me",
@@ -80,8 +80,8 @@ def test_get_challenge_by_id(client, users):
 
     app.dependency_overrides.clear()
 
-def test_get_challenge_not_found(client, users):
-    app.dependency_overrides[get_current_user] = override_get_current_user(users["user1"])
+def test_get_challenge_not_found(client, users, session):
+    app.dependency_overrides[get_current_user] = override_get_current_user(users["user1"].id, session)
 
     response = client.get("/challenge/999999")
 
@@ -90,8 +90,8 @@ def test_get_challenge_not_found(client, users):
 
     app.dependency_overrides.clear()
 
-def test_multi_user_challenges(client, users):
-    app.dependency_overrides[get_current_user] = override_get_current_user(users["user1"])
+def test_multi_user_challenges(client, users,session):
+    app.dependency_overrides[get_current_user] = override_get_current_user(users["user1"].id, session)
 
     payload = {
         "name": "teste",
@@ -108,7 +108,7 @@ def test_multi_user_challenges(client, users):
     res = client.post("/challenge/create", json=payload)
     challenge_id = res.json()["id"]
 
-    app.dependency_overrides[get_current_user] = override_get_current_user(users["user2"])
+    app.dependency_overrides[get_current_user] = override_get_current_user(users["user2"].id, session)
 
     response = client.get(f"/challenge/{challenge_id}")
 

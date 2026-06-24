@@ -49,9 +49,10 @@ def create_user(
         updated_at=datetime.now(UTC),
     )
 
-def override_get_current_user(user):
+def override_get_current_user(user_id, session):
     def _get_user():
-        return user
+        return session.get(User, user_id)
+
     return _get_user
 
 @pytest.fixture(name="session")
@@ -81,9 +82,14 @@ def users(session):
 
     return {"user1": user1, "user2": user2}
 
-@pytest.fixture
-def client(session):
-    app.dependency_overrides[get_session] = override_get_session
+@pytest.fixture(name="client")
+def client_fixture(session):
+    def override():
+        yield session
+
+    app.dependency_overrides[get_session] = override
 
     with TestClient(app) as client:
         yield client
+
+    app.dependency_overrides.clear()

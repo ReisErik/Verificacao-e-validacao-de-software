@@ -206,7 +206,7 @@ def update_progress(data: UpdateProgressSchema, session, current_user):
         score_per_day = challenge.goal / duration_days
         score_max_per_day = score_per_day * FACTOR_MAX[challenge.type_challenge]
 
-        score_today = get_total_score_today(data.challenge_id, current_user, session)
+        score_today = get_total_score_today(data.challenge_id, current_user, session) or 0
         
         if score_today + score > score_max_per_day:
             raise HTTPException(
@@ -214,7 +214,7 @@ def update_progress(data: UpdateProgressSchema, session, current_user):
                 detail="Pontuação inserida ultrapassa o limite diário"
             )
 
-
+        progress.last_update = today
         progress.current_progress += score
 
     if not progress.completed:

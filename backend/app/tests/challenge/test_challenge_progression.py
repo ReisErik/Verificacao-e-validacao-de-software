@@ -587,13 +587,12 @@ def test_update_progress_streak_success(progress_mock, challenge_mock, update_st
     progress.completed = False
     progress.last_update = (datetime.now(UTC) - timedelta(days=1)).date()
     progress.xp_granted = False
-    progress.last_update = date.today() - timedelta(days=1)
 
     challenge = Mock()
     challenge.id = 1
     challenge.xp_reward = 100
     challenge.goal = 2
-    challenge.start_date = datetime.now(UTC) - timedelta(days=1)
+    challenge.start_date = datetime.now(UTC)
     challenge.end_date = datetime.now(UTC) + timedelta(days=1)
     challenge.type_challenge = ChallengeType.STREAK
     challenge.mode_challenge = ChallengeMode.SOLO
@@ -670,7 +669,7 @@ def test_update_progress_streak_partial_progress(progress_mock, challenge_mock, 
 @patch("app.services.challenge_progression_service.update_streak")
 @patch("app.services.challenge_progression_service.get_challenge_or_404")
 @patch("app.services.challenge_progression_service.get_progress_or_404")
-def test_update_progress_streak_partial_progress(progress_mock, challenge_mock, update_streak_mock):
+def test_update_progress_streak_already_progress_today(progress_mock, challenge_mock, update_streak_mock):
     """Sucesso: Atualizou progresso do desafio Streak, finalizou e adicionou progresso"""
     session = Mock()
 

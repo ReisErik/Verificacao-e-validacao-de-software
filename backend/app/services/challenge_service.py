@@ -10,6 +10,7 @@ from datetime import datetime, UTC
 from app.schemas.challenge_schema import CreateChallengeSchema, JoinChallengeSchema
 from app.services.calculate_xp import calculate_xp
 from app.schemas.challenge_schema import ChallengeType
+from app.utils.calculate_duration_days import calculate_duration_days
   
 def validate_goal(goal, duration_days, challenge_type):
     effort_per_day = goal / duration_days
@@ -65,7 +66,7 @@ def create_challenge(data: CreateChallengeSchema ,session, current_user):
             detail="Data final deve ser maior que a inicial."
         )
 
-    duration_days = max((data.end_date - data.start_date).days, 1)
+    duration_days = calculate_duration_days(data.start_date, data.end_date)
 
     validate_goal(
         goal=data.goal,
