@@ -12,6 +12,8 @@ export const ChallengeSchema = z.object({
     visibility: z.boolean(),
     type_challenge: z.string(),
     category: z.string(),
+    max_participants: z.number(),
+    mode_challenge: z.string()
 });
 
 export type Challenge = z.infer<typeof ChallengeSchema>;
@@ -25,6 +27,8 @@ export const CreateChallengeSchema = z.object({
     visibility: z.boolean(),
     type_challenge: z.string(),
     category: z.string(),
+    max_participants: z.number(),
+    mode_challenge: z.string()
 });
 
 export type CreateChallenge = z.infer<typeof CreateChallengeSchema>;

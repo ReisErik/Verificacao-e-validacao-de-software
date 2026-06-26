@@ -10,8 +10,10 @@ from app.models.challenge_progress import ChallengeProgress
 from datetime import datetime, UTC, date
 from app.schemas.challenge_schema import JoinChallengeSchema
 from app.utils.ensure_utc import ensure_utc
+from app.models.challenge import Challenge
 
 def ensure_not_participant(participant_id:int, challenge_id: int, session, current_user):
+    """ Verificar se o usuario já esta participando do desafio"""
     validateAuth(current_user)
     
     participant = session.exec(
@@ -28,6 +30,7 @@ def ensure_not_participant(participant_id:int, challenge_id: int, session, curre
         )
 
 def ensure_participants_limit(challenge, session):
+    """ Verificar se o desafio ja está com vaga disponivel"""
     participants = session.exec(
     select(ChallengeParticipant).where(
         ChallengeParticipant.challenge_id == challenge.id
@@ -41,6 +44,12 @@ def ensure_participants_limit(challenge, session):
         )
 
 def join_or_refuse_challenge(data: JoinChallengeSchema , session, current_user):
+    """
+    Aceitar ou recusar convite para usuario
+    Aceitar caso: Usuario não participe; Usuario não atingiu limite de desafios em andamento; Desafio possui vagas disponiveis
+                  Foi aceito dentro de 7 dias, Apenas o usuario que recebeu pode aceitar, Convite não foi respondido
+
+    """
     validateAuth(current_user)
 
     answer = data.answer
@@ -103,6 +112,7 @@ def join_or_refuse_challenge(data: JoinChallengeSchema , session, current_user):
     return invite
 
 def get_challenge_participate(challenge_id: int, session, current_user):
+    """ Buscar registro de participação do usuario """
     validateAuth(current_user)
 
     challenges = session.exec(
@@ -121,24 +131,19 @@ def get_challenge_participate(challenge_id: int, session, current_user):
     return challenges
 
 def get_all_challenge_participate(session, current_user):
+    """Buscar todos os desafios que o usuário participa"""
     validateAuth(current_user)
 
     challenges = session.exec(
-        select(ChallengeParticipant).where(
-            ChallengeParticipant.user_id == current_user.id
-        )
+        select(Challenge)
+        .join(ChallengeParticipant, Challenge.id == ChallengeParticipant.challenge_id)
+        .where(ChallengeParticipant.user_id == current_user.id)
     ).all()
-
-    if not challenges:
-        raise HTTPException(
-            status_code = 404,
-            detail="Usuario não participa de nenhum desafio"
-        )
 
     return challenges
 
 def get_latest_user_challenge_or_none(challenge_id: int, session, current_user):
-
+    """ Buscar o usuario mais antigo do desafio após o dono"""
     user = session.exec(
         select(ChallengeParticipant).where(
             ChallengeParticipant.challenge_id == challenge_id,
@@ -149,6 +154,11 @@ def get_latest_user_challenge_or_none(challenge_id: int, session, current_user):
     return user
 
 def leave_challenge(challenge_id: int, session, current_user):
+    """
+    Sair do desafio
+    Aceito caso: desafio, participação e progressão existir, desafio ainda não foi encerrado ou completo pelo usuario
+    Caso o dono sair, usuario mais antigo registrado assume o cargo de dono do desafio
+    """
     validateAuth(current_user)
 
     challenge = get_challenge_or_404(challenge_id, session, current_user)

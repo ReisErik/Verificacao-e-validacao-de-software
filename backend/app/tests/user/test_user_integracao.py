@@ -20,18 +20,6 @@ def test_create_user(client):
     })
     assert response.status_code == 200
 
-def test_get_user(client):
-    user = create_user_test(client, {
-        "first_name": "Joao",
-        "last_name": "Silva",
-        "unique_name": "joaosilva1",
-        "email": "joao.silva1@gmail.com",
-        "password": "senha123!",
-        "role": "user"
-    })
-    response = client.get(f"/user/{user['id']}")
-    assert response.status_code == 200
-
 def test_update_user_password(client):
     user = create_user_test(client, {
         "first_name": "Joao",

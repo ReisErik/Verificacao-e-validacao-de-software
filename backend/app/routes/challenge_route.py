@@ -21,3 +21,4 @@ async def get_all_challenge_route(session = Depends(get_session), current_user =
 @router.get("/{id}", response_model=ChallengeResponseSchema, status_code=200)
 async def get_challenge_route(id: int, session = Depends(get_session), current_user = Depends(get_current_user)):
     return get_challenge_or_404(id, session, current_user)
+

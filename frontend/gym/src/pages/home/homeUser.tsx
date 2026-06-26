@@ -1,5 +1,6 @@
 import ChallengePanel from "@/components/challenges/challengePainel";
 import InvitePanel from "@/components/invites/invitePanel";
+import ReceivedInvites from "@/components/invites/receivedInvite";
 
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 
@@ -21,7 +22,7 @@ export default function HomeUser() {
         </CardHeader>
 
         <CardContent className="space-y-4">
-          <InvitePanel compact/>
+          <ReceivedInvites compact/>
         </CardContent>
       </Card>
     </div>

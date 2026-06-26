@@ -351,7 +351,10 @@ def test_get_all_challenges_success():
 
     challenges = [Mock(), Mock()]
 
-    session.exec.return_value.all.return_value = challenges
+    exec_mock = Mock()
+    exec_mock.all.return_value = challenges
+
+    session.exec.return_value = exec_mock
 
     result = get_all_challenge_participate(session, current_user)
 
@@ -364,11 +367,7 @@ def test_get_all_challenges_empty():
 
     session.exec.return_value.all.return_value = []
 
-    with pytest.raises(HTTPException) as e:
-        get_all_challenge_participate(session, current_user)
-
-    assert e.value.status_code == 404
-    assert e.value.detail == "Usuario não participa de nenhum desafio"
+    assert get_all_challenge_participate(session, current_user) == []
 
 @patch("app.services.challenge_participant_service.get_latest_user_challenge_or_none")
 @patch("app.services.challenge_participant_service.get_progress_or_404")

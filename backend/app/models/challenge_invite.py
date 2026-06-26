@@ -6,6 +6,7 @@ class ChallengeInvite(SQLModel, table=True):
     sender_id: int | None = Field(default=None, foreign_key="user.id")
     sender_name: str
     receiver_id: int | None = Field(default=None, foreign_key="user.id")
+    receiver_name: str
     challenge_id: int | None = Field(default=None, foreign_key="challenge.id")
     challenge_name: str
     sent: bool = False

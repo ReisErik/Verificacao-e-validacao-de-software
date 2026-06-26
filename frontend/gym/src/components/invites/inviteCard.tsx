@@ -2,6 +2,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 
 import type { Invite } from "@/schemas/invite";
+import { useState } from "react";
 
 interface InviteCardProps {
   invite: Invite;
@@ -14,6 +15,7 @@ export default function InviteCard({
   onAccept,
   onReject,
 }: InviteCardProps) {
+
   return (
     <Card>
       <CardContent className="flex w-full items-center justify-between pl-4 pr-4">

@@ -6,6 +6,8 @@ import {
 import LoginPage from "@/pages/login/login"
 import Layout from "@/components/sidebar/layout"
 import HomeUser from "@/pages/home/homeUser"
+import ChallengePage from "@/pages/challenge/challengePage"
+import InvitePage from "@/pages/challenge/invitePage"
 
 export default function AppRoutes() {
     return (
@@ -13,8 +15,8 @@ export default function AppRoutes() {
             <Route path="/login" element={<LoginPage />} />
             <Route element={<Layout />} >
                 <Route path="/" element={<HomeUser />} />
-                <Route path="/treinos" element={<h1>Treinos</h1>} />
-                <Route path="/dashboard" element={<h1>Dashboard</h1>} />
+                <Route path="/desafios" element={<ChallengePage/>} />
+                <Route path="/convites" element= {<InvitePage/>} />
             </Route>
         </Routes>
     )

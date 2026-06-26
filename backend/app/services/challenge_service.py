@@ -14,6 +14,7 @@ from app.utils.calculate_duration_days import calculate_duration_days
 from app.utils.constantes import *
   
 def validate_goal(goal, duration_days, challenge_type):
+    """ Validação de desafio """
     effort_per_day = goal / duration_days
 
     if challenge_type == ChallengeType.STREAK:
@@ -48,6 +49,7 @@ def validate_goal(goal, duration_days, challenge_type):
             )
 
 def ensure_active_challenge_limit(current_user, session):
+    """ Verifica se o usuário ja atingiu limite de desafios """
     active = session.exec(
         select(ChallengeProgress).where(
             ChallengeProgress.user_id == current_user.id,
@@ -62,6 +64,10 @@ def ensure_active_challenge_limit(current_user, session):
         )
 
 def create_challenge(data: CreateChallengeSchema ,session, current_user):
+    """ 
+    Cria Desafio
+    Aceito quando: Data final maior que final, número de participantes válido, tempo dentro do intervalo permitido
+    """
     validateAuth(current_user)
 
     ensure_active_challenge_limit(current_user, session)
@@ -159,5 +165,15 @@ def get_all_challenge(session, current_user):
 
     return challenges
  
+def get_challenges_user(session, current_user):
+    validateAuth(current_user)
+
+    challenges = session.exec(
+        select(Challenge).where(
+            Challenge.visibility.is_(True)
+        )
+    ).all()
+
+    return challenges
       
 

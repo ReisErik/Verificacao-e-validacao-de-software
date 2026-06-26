@@ -251,11 +251,7 @@ def test_get_all_invites_receives_empty():
 
     session.exec.return_value.all.return_value = []
 
-    with pytest.raises(HTTPException) as e:
-        get_all_invites_receives(session, current_user)
-
-    assert e.value.status_code == 404
-    assert e.value.detail == "Usuario não recebeu convites"
+    assert get_all_invites_receives(session, current_user) == []
 
 def test_ensure_not_participant_true():
     session = Mock()

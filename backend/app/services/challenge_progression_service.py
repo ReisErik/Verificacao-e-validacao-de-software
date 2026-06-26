@@ -12,6 +12,7 @@ from app.services.challenge_log_service import create_log, get_total_score_today
 from app.models.user import User
 
 def get_progress_or_404(challenge_id: int, session, current_user):
+    """ Busca o progresso do usuario """
     validateAuth(current_user)
 
     progress = session.exec(
@@ -30,6 +31,7 @@ def get_progress_or_404(challenge_id: int, session, current_user):
     return progress
 
 def reward_user(current_user, challenge, session):
+    """ Recompensa para desafios SOLO """
     validateAuth(current_user)
     current_user.xp += challenge.xp_reward
 
@@ -38,6 +40,10 @@ def reward_user(current_user, challenge, session):
     return current_user
 
 def reward_all_participants(challenge, session):
+    """ 
+    Recompensa para desafios GROUP 
+    Distribui a mesma quantidade de XP para todos participantes
+    """
     progressions = session.exec(
         select(ChallengeProgress).where(
             ChallengeProgress.challenge_id == challenge.id
@@ -67,6 +73,7 @@ def reward_all_participants(challenge, session):
     session.commit()
 
 def all_participants_completed(challenge, session) -> bool:
+    """ Verifica se todos participantes completaram o desafio """
     pending = session.exec(
         select(ChallengeProgress)
         .where(
@@ -79,6 +86,7 @@ def all_participants_completed(challenge, session) -> bool:
     return pending is None
 
 def first_participant_completed(challenge, session) -> bool:
+    """ Verifica se foi o primeiro participante a concluir o desafio """
     completed = session.exec(
         select(ChallengeProgress)
         .where(
@@ -90,6 +98,11 @@ def first_participant_completed(challenge, session) -> bool:
     return len(completed) == 1
 
 def reward_all_participants_competition(challenge, session):
+    """
+    Recompensa para desafios COMPETITION
+    Distribui XP conforme colocação do desafio
+        1º -> 120%, 2º -> 110%, 3º -> 100%, 4º e 5º -> 80%, demais que completaram pelo menos metade do desafio -> 20%, restante -> 0
+    """
     progressions = session.exec(
         select(ChallengeProgress).where(
             ChallengeProgress.challenge_id == challenge.id
@@ -146,6 +159,20 @@ def reward_all_participants_competition(challenge, session):
     session.commit()
 
 def update_progress(data: UpdateProgressSchema, session, current_user):
+    """
+    Atualiza progresso do desafio
+    Aceito caso: Progresso e desafio existam; enquanto estiver com o desafio ativo; usuario não completou
+                 Pontuação precisa ser positiva; 
+                 Streak: apenas um registro por dia
+                 Média diaria é a meta fracionada igualitáriamente entre os dias
+                 TIME: No máximo 150% da média diaria
+                 AMOUNT: No máximo 200% da médida diaria
+    Caso o progresso do usuário alcance a meta, desafio é finalizado quando: 
+                 SOLO -> Automáticamente, 
+                 GROUP -> Todos participantes terminaram; 
+                 COMPETITION -> Assim que o primeiro participante terminar
+    A cada Atualização do desafio é criado um LOG e atualizado a STREAK global do usuário caso seja a primeira atualização do dia
+    """
     validateAuth(current_user)
 
     progress = get_progress_or_404(data.challenge_id, session, current_user)

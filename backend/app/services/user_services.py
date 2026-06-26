@@ -4,6 +4,7 @@ from app.core.security import hash_password, verify_password
 from sqlmodel import select
 from datetime import datetime, timedelta
 from app.validators.validate_user import validate_name, validate_unique_name, validate_password
+from app.validators.validate_auth import validateAuth
 
 def create_user(data, session):
     password = data.password
@@ -48,6 +49,21 @@ def create_user(data, session):
     session.commit()
     session.refresh(user)
     return user
+
+def get_all_user_public(current_user, session):
+    rows = session.exec(
+        select(User.id, User.unique_name, User.first_name)
+        .where(User.id != current_user.id)
+    ).all()
+
+    return [
+        {
+            "id": row.id,
+            "unique_name": row.unique_name,
+            "first_name": row.first_name,
+        }
+        for row in rows
+    ]   
 
 def get_user_or_404(id: int, session):
     user = session.get(User, id)

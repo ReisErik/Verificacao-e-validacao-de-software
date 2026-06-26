@@ -9,6 +9,16 @@ def calculate_xp(
     challenge_type: ChallengeType,
     category: str | None = None,
 ) -> int:
+    """ 
+    Função para Calcular XP do desafio
+    Equilibrador XP por desafio e bonificar desafios mais difíceis
+
+    XP = (50 + (50 + En * 200) + C) * M
+    En -> Esforço normalizado, normalizar medida para tipos de desafio diferente
+    C -> Bonus por categoria -> "Leitura": 10, "Exercicio": 30, "Estudos": 20, "Idiomas": 15, "Saude": 30, "Any": 0
+    M -> Multiplicador -> Multiplicador crescente conforme a quantidade de dias o desafio possui
+
+    """
 
     duration_days = calculate_duration_days(start_date, end_date)
 

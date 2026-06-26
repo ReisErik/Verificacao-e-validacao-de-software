@@ -7,6 +7,7 @@ from app.models.challenge_invite import ChallengeInvite
 from app.models.challenge_participant import ChallengeParticipant
 
 def invite_exists(challenge_id: int, user_invitated_id: int, session, current_user):
+    """ Verificação se o convite já existe"""
     validateAuth(current_user)
 
     invite = session.exec(
@@ -23,6 +24,7 @@ def invite_exists(challenge_id: int, user_invitated_id: int, session, current_us
         )
 
 def ensure_challenge_has_slot(challenge, session):
+    """ Verificação se o desafio tem vaga"""
     participants = session.exec(
         select(ChallengeParticipant).where(
             ChallengeParticipant.challenge_id == challenge.id
@@ -36,6 +38,7 @@ def ensure_challenge_has_slot(challenge, session):
         )
 
 def ensure_not_participant(participant_id: int, challenge_id: int, session, current_user):
+    """ Verificação se o usuário já participa do desafio"""
     validateAuth(current_user)
 
     participant = session.exec(
@@ -52,12 +55,17 @@ def ensure_not_participant(participant_id: int, challenge_id: int, session, curr
         )
 
 def invite_challenge(challenge_id: int, user_invitated_id: int, session, current_user):
+    """ 
+    Função para convidar usuários 
+    Apenas dono do desafio, não é permitido convidar a si mesmo
+    Não pode convidar caso: já participe; não possui vagas; já foi convidado
+    """
     validateAuth(current_user)
 
     invite_exists(challenge_id, user_invitated_id ,session, current_user)
 
     challenge = get_challenge_or_404(challenge_id, session, current_user)
-    get_user_or_404(user_invitated_id, session)
+    user_invitated = get_user_or_404(user_invitated_id, session)
 
     ensure_challenge_has_slot(challenge, session)
     ensure_not_participant(user_invitated_id, challenge.id, session, current_user)
@@ -80,7 +88,8 @@ def invite_challenge(challenge_id: int, user_invitated_id: int, session, current
         receiver_id=user_invitated_id,
         challenge_id=challenge_id,
         challenge_name=challenge.name,
-        sent=True
+        sent=True,
+        receiver_name = f"{user_invitated.first_name} {user_invitated.last_name}"
     )
 
     session.add(invite)
@@ -90,6 +99,7 @@ def invite_challenge(challenge_id: int, user_invitated_id: int, session, current
     return invite
 
 def get_invite_or_404(invite_id: int, session, current_user):
+    """ Buscar o convite no Banco """
     validateAuth(current_user)
     invite = session.get(ChallengeInvite, invite_id)
     if not invite:
@@ -100,6 +110,11 @@ def get_invite_or_404(invite_id: int, session, current_user):
     return invite
 
 def cancel_invite(invite_id: int, user_invitated_id: int, session, current_user):
+    """
+    Cancelar o convite   
+    Apenas se: Usuario for remetente; convite foi enviado; não foi respondido
+    """
+    
     validateAuth(current_user)
 
     invite = get_invite_or_404(invite_id, session, current_user)
@@ -129,6 +144,7 @@ def cancel_invite(invite_id: int, user_invitated_id: int, session, current_user)
     return {"message": "Convite cancelado"}
 
 def get_all_invites_sends(session, current_user):
+    """ Buscar todos convites enviados pelo usuario """
     validateAuth(current_user)
 
     invites = session.exec(
@@ -146,6 +162,7 @@ def get_all_invites_sends(session, current_user):
     return invites
 
 def get_all_invites_receives(session, current_user):
+    """ Buscar todos convites recebidos pelo usuario """
     validateAuth(current_user)
 
     invites = session.exec(
@@ -153,11 +170,5 @@ def get_all_invites_receives(session, current_user):
             ChallengeInvite.receiver_id == current_user.id
         )
     ).all()
-
-    if not invites:
-        raise HTTPException(
-            status_code = 404,
-            detail="Usuario não recebeu convites"
-        )
 
     return invites

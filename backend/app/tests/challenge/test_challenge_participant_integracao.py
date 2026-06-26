@@ -48,6 +48,7 @@ def test_join_challenge_accept(client, session, users):
         sender_id=users["user1"].id,
         sender_name="User One",
         receiver_id=users["user2"].id,
+        receiver_name="teste",
         challenge_id=1,
         challenge_name="Teste",
         sent=True,
@@ -115,6 +116,7 @@ def test_join_challenge_refuse(client, session, users):
         sender_id=users["user1"].id,
         sender_name="User One",
         receiver_id=users["user2"].id,
+        receiver_name="teste",
         challenge_id=1,
         challenge_name="Teste",
         sent=True,
@@ -167,13 +169,34 @@ def test_get_all_challenge_participate(client, session, users):
         users["user1"].id, session
     )
 
+    start = datetime.now(UTC)
+    end = start + timedelta(days=7)
+
+    challenge = Challenge(
+        id=1,
+        owner=users["user1"].id,
+        name="Teste",
+        description="Teste",
+        start_date=start,
+        end_date=end,
+        goal=5,
+        xp_reward=100,
+        visibility=True,
+        category="Estudos",
+        type_challenge="STREAK",
+        mode_challenge="GROUP",
+        max_participants = 5
+    )
+
     participant = ChallengeParticipant(
         user_id=users["user1"].id,
         challenge_id=1,
     )
 
+    session.add(challenge)
     session.add(participant)
     session.commit()
+    session.refresh(participant)  
 
     response = client.get("/challenge/participant/get/all")
 
@@ -261,6 +284,7 @@ def test_join_fail_user_already_participant(client, session, users):
         sender_id=users["user1"].id,
         sender_name="User One",
         receiver_id=users["user2"].id,
+        receiver_name="teste",
         challenge_id=challenge.id,
         challenge_name=challenge.name,
         sent=True,
@@ -333,6 +357,7 @@ def test_join_fail_active_challenge_limit(client, session, users):
         sender_id=users["user1"].id,
         sender_name="User One",
         receiver_id=users["user2"].id,
+        receiver_name="teste",
         challenge_id=challenge.id,
         challenge_name=challenge.name,
         sent=True,
@@ -395,6 +420,7 @@ def test_join_fail_participant_limit(client, session, users):
         sender_id=users["user1"].id,
         sender_name="User One",
         receiver_id=users["user2"].id,
+        receiver_name="teste",
         challenge_id=challenge.id,
         challenge_name=challenge.name,
         sent=True,
