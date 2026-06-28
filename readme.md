@@ -33,6 +33,10 @@ cd verificacao-e-validacao-de-software
 
 ## 2. Crie um ambiente virtual
 
+```bash
+cd backend
+```
+
 ### Windows
 
 ```bash
@@ -58,10 +62,6 @@ pip install -r requirements.txt
 ---
 
 ## 4. Execute a API
-
-```bash
-cd backend
-```
 
 ```bash
 uvicorn app.main:app --reload
