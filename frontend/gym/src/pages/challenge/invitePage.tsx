@@ -29,7 +29,7 @@ export default function InvitePage() {
 
         <TabsList>
 
-          <TabsTrigger value="create">
+          <TabsTrigger data-testid="criar" value="create">
             Criar
           </TabsTrigger>
 
@@ -37,7 +37,7 @@ export default function InvitePage() {
             Recebidos
           </TabsTrigger>
 
-          <TabsTrigger value="sent">
+          <TabsTrigger data-testid="enviados" value="sent">
             Enviados
           </TabsTrigger>
 

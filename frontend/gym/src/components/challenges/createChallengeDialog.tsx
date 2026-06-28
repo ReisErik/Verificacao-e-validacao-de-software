@@ -83,18 +83,20 @@ export default function CreateChallengeDialog({
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <Label>Nome</Label>
+            <Label htmlFor="name">Nome</Label>
 
             <Input
+              id="name"
               value={form.name}
               onChange={(e) => setField("name", e.target.value)}
             />
           </div>
 
           <div>
-            <Label>Descrição</Label>
+            <Label htmlFor="description">Descrição</Label>
 
             <Input
+              id="description"
               value={form.description}
               onChange={(e) => setField("description", e.target.value)}
             />
@@ -151,9 +153,10 @@ export default function CreateChallengeDialog({
           </div>
 
           <div>
-            <Label>Meta</Label>
+            <Label htmlFor="meta">Meta</Label>
 
             <Input
+              id="meta"
               type="number"
               value={form.goal}
               onChange={(e) =>
@@ -163,9 +166,10 @@ export default function CreateChallengeDialog({
           </div>
 
           <div>
-            <Label>Número máximo de participantes</Label>
+            <Label htmlFor="maxPart">Número máximo de participantes</Label>
 
             <Input
+              id="maxPart"
               type="number"
               value={form.max_participants}
               onChange={(e) =>
@@ -176,9 +180,10 @@ export default function CreateChallengeDialog({
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <Label>Data inicial</Label>
+              <Label htmlFor="startDate">Data inicial</Label>
 
               <Input
+                id="startDate"
                 type="date"
                 value={form.start_date}
                 onChange={(e) =>
@@ -188,9 +193,10 @@ export default function CreateChallengeDialog({
             </div>
 
             <div>
-              <Label>Data final</Label>
+              <Label htmlFor="endDate">Data final</Label>
 
               <Input
+                id="endDate"
                 type="date"
                 value={form.end_date}
                 onChange={(e) =>
@@ -222,7 +228,7 @@ export default function CreateChallengeDialog({
               Cancelar
             </Button>
 
-            <Button type="submit">
+            <Button type="submit" data-testid="create-challenge">
               Criar desafio
             </Button>
           </div>

@@ -46,6 +46,7 @@ def test_join_challenge_accept_success(mock_get_challenge, mock_get_invite, mock
 
     challenge_mock = Mock()
     challenge_mock.id = 10
+    challenge_mock.start_date = datetime.now(UTC)
     challenge_mock.end_date = datetime.now(UTC) + timedelta(days=5)
     challenge_mock.max_participants = 5
 
@@ -84,6 +85,7 @@ def test_join_challenge_expired(mock_get_challenge, mock_get_invite, mock_ensure
     data.answer = True
 
     challenge_mock = Mock()
+    challenge_mock.start_date = datetime.now(UTC)
     challenge_mock.end_date = datetime.now(UTC) - timedelta(days=2)
     challenge_mock.max_participants = 5
 
@@ -121,6 +123,7 @@ def test_join_challenge_invite_wrong_user(mock_get_challenge, mock_get_invite, m
 
     challenge_mock = Mock()
     challenge_mock.end_date = datetime.now(UTC) + timedelta(days=2)
+    challenge_mock.start_date = datetime.now(UTC)
     challenge_mock.max_participants = 5
 
     mock_get_challenge.return_value = challenge_mock
@@ -142,6 +145,43 @@ def test_join_challenge_invite_wrong_user(mock_get_challenge, mock_get_invite, m
 @patch("app.services.challenge_participant_service.ensure_not_participant")
 @patch("app.services.challenge_participant_service.get_invite_or_404")
 @patch("app.services.challenge_participant_service.get_challenge_or_404")
+def test_join_challenge_half_time(mock_get_challenge, mock_get_invite, mock_ensure_not_participant):
+    """Erro: Usuário tenta aceitar convite de outro usuario"""
+    session = Mock()
+    session.exec.return_value.all.return_value = []
+
+    current_user = Mock()
+    current_user.id = 2
+
+    data = Mock()
+    data.challenge_id = 10
+    data.invite_id = 5
+    data.answer = True
+
+    challenge_mock = Mock()
+    challenge_mock.end_date = datetime.now(UTC) + timedelta(days=3)
+    challenge_mock.start_date = datetime.now(UTC) - timedelta(days=5)
+    challenge_mock.max_participants = 5
+
+    mock_get_challenge.return_value = challenge_mock
+
+    invite_mock = Mock()
+    invite_mock.receiver_id = 2
+    invite_mock.answer = None
+    invite_mock.created_at = date.today()
+    
+    mock_get_invite.return_value = invite_mock
+
+    with pytest.raises(HTTPException) as e:
+        join_or_refuse_challenge(data, session, current_user)
+
+    assert e.value.status_code == 400
+    assert e.value.detail == "O período para ingresso neste desafio já foi encerrado."
+    session.commit.assert_not_called()
+
+@patch("app.services.challenge_participant_service.ensure_not_participant")
+@patch("app.services.challenge_participant_service.get_invite_or_404")
+@patch("app.services.challenge_participant_service.get_challenge_or_404")
 def test_join_challenge_refuse_success(mock_get_challenge,mock_get_invite,mock_ensure_not_participant):
     """Correto: Usuario recusa o convite do desafio"""
     session = Mock()
@@ -158,6 +198,7 @@ def test_join_challenge_refuse_success(mock_get_challenge,mock_get_invite,mock_e
     challenge_mock = Mock()
     challenge_mock.id = 10
     challenge_mock.end_date = datetime.now(UTC) + timedelta(days=2)
+    challenge_mock.start_date = datetime.now(UTC)
     challenge_mock.max_participants = 5
 
     mock_get_challenge.return_value = challenge_mock
@@ -193,6 +234,7 @@ def test_join_challenge_already_answered_true(mock_get_challenge, mock_get_invit
 
     challenge_mock = Mock()
     challenge_mock.end_date = datetime.now(UTC) + timedelta(days=2)
+    challenge_mock.start_date = datetime.now(UTC)
     challenge_mock.max_participants = 5
 
     mock_get_challenge.return_value = challenge_mock

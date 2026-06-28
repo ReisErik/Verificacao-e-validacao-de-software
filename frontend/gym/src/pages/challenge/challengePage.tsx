@@ -23,7 +23,7 @@ export default function ChallengePage() {
         </div>
 
         <CreateChallengeDialog onCreated={handleCreated}>
-          <Button>Criar desafio</Button>
+          <Button data-testid="open-create-challenge">Criar desafio</Button>
         </CreateChallengeDialog>
       </div>
 

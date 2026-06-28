@@ -103,6 +103,7 @@ export default function CreateInviteForm() {
       <Button
         className="w-full"
         onClick={handleCreate}
+        data-testid="invite"
       >
         Enviar convite
       </Button>

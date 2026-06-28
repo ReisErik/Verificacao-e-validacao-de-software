@@ -158,7 +158,7 @@ export default function ChallengeCard({
         <AlertDialog>
 
           <AlertDialogTrigger>
-            <Button variant="destructive">Sair do desafio</Button>
+            <Button data-testid="delete-challenge" variant="destructive">Sair do desafio</Button>
           </AlertDialogTrigger>
 
           <AlertDialogContent>
@@ -173,7 +173,7 @@ export default function ChallengeCard({
 
             <AlertDialogFooter>
               <AlertDialogCancel>Cancelar</AlertDialogCancel>
-              <AlertDialogAction variant="destructive" onClick={handleConfirmLeave}>
+              <AlertDialogAction data-testid="confirm-delete" variant="destructive" onClick={handleConfirmLeave}>
                 Confirmar
               </AlertDialogAction>
             </AlertDialogFooter>

@@ -6,6 +6,7 @@ from app.database.connection import get_session
 from app.models.user import User
 from app.core.auth import get_current_user
 from datetime import datetime, UTC
+from playwright.sync_api import Page
 
 DATABASE_TEST_URL = "sqlite:///./test.db"
 
@@ -61,6 +62,48 @@ def session_fixture():
     with Session(engine) as session:
         yield session
     SQLModel.metadata.drop_all(engine)
+
+@pytest.fixture
+def logged_page(page: Page):
+
+    page.goto("http://localhost:5173/login")
+
+    page.get_by_placeholder("Digite seu email").fill("user@user.com")
+
+    page.get_by_placeholder("Digite sua senha").fill("user")
+
+    page.get_by_role("button", name="Entrar").click()
+
+    page.wait_for_url("**/")
+
+    page.wait_for_load_state("networkidle")
+
+    assert page.evaluate(
+        "() => localStorage.getItem('token')"
+    )
+
+    return page
+
+@pytest.fixture
+def logged_page_user2(page: Page):
+
+    page.goto("http://localhost:5173/login")
+
+    page.get_by_placeholder("Digite seu email").fill("user2@user2.com")
+
+    page.get_by_placeholder("Digite sua senha").fill("user2")
+
+    page.get_by_role("button", name="Entrar").click()
+
+    page.wait_for_url("**/")
+
+    page.wait_for_load_state("networkidle")
+
+    assert page.evaluate(
+        "() => localStorage.getItem('token')"
+    )
+
+    return page
 
 @pytest.fixture
 def users(session):

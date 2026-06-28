@@ -86,6 +86,15 @@ def join_or_refuse_challenge(data: JoinChallengeSchema , session, current_user):
             status_code=400,
             detail="Desafio encerrado"
         )
+    
+    remaining_days = (challenge.end_date.date() - date.today()).days + 1
+    total_days = (challenge.end_date.date() - challenge.start_date.date()).days + 1
+    
+    if remaining_days < total_days / 2:
+        raise HTTPException(
+            status_code=400,
+            detail="O período para ingresso neste desafio já foi encerrado."
+        )
 
     if not answer:
         invite.answer = False
